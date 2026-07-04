@@ -1,0 +1,54 @@
+[
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_bg_button.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/bg_button.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_refresh.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_refresh.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_bg_address_bar.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/bg_address_bar.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/layout_item_tab.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/layout/item_tab.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/layout_dialog_tabs.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/layout/dialog_tabs.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_close.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_close.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_tabs.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_tabs.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_settings.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_settings.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_add.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_add.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_bg_tab_pill.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/bg_tab_pill.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/drawable_ic_launcher.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/drawable/ic_launcher.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/layout_dialog_settings.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/layout/dialog_settings.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-32:/layout_activity_main.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-34:/layout/activity_main.xml"
+    }
+]

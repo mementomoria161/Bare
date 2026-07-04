@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialogRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/window_background"
+    android:padding="16dp">
+
+    <!-- Header bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical">
+
+        <!-- Close button (left side) -->
+        <ImageButton
+            android:id="@+id/btnCloseDialog"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_button"
+            android:contentDescription="Close tab overview"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_primary" />
+
+        <!-- Title (center aligned or adjacent to Close) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/btnCloseDialog"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:text="Tabs"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Add Tab Button (right side) -->
+        <ImageButton
+            android:id="@+id/btnAddTab"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_button"
+            android:contentDescription="New tab"
+            android:src="@drawable/ic_add"
+            app:tint="@color/primary" />
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- RecyclerView takes up all remaining screen space -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTabs"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
+    android:layout_width="match_parent"
+    android:layout_height="88dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    app:cardCornerRadius="44dp"
+    app:cardBackgroundColor="@color/surface"
+    app:strokeColor="@color/border"
+    app:strokeWidth="1dp"
+    app:cardElevation="2dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- Webpage Thumbnail Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/thumbnailCard"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/address_bar_bg"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/ivTabThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Webpage thumbnail"
+                android:src="@drawable/ic_launcher"
+                app:tint="@color/text_secondary" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Text Information -->
+        <LinearLayout
+            android:id="@+id/textContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintStart_toEndOf="@id/thumbnailCard"
+            app:layout_constraintEnd_toStartOf="@id/btnCloseTab"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/tvTabTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="New Tab"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:singleLine="true"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvTabUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="about:blank"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <!-- Close Button -->
+        <ImageButton
+            android:id="@+id/btnCloseTab"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="Close tab"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_secondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
