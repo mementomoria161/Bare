@@ -1,69 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/dialogRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/window_background"
-    android:padding="16dp">
+    android:background="?android:attr/windowBackground"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp">
 
-    <!-- Header bar -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:gravity="center_vertical">
-
-        <!-- Close button (left side) -->
-        <ImageButton
-            android:id="@+id/btnCloseDialog"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:background="@drawable/bg_button"
-            android:contentDescription="Close tab overview"
-            android:src="@drawable/ic_close"
-            app:tint="@color/text_primary" />
-
-        <!-- Title (center aligned or adjacent to Close) -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/btnCloseDialog"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="12dp"
-            android:text="Tabs"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <!-- Add Tab Button (right side) -->
-        <ImageButton
-            android:id="@+id/btnAddTab"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="@drawable/bg_button"
-            android:contentDescription="New tab"
-            android:src="@drawable/ic_add"
-            app:tint="@color/primary" />
-    </RelativeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="12dp" />
-
-    <!-- RecyclerView takes up all remaining screen space -->
+    <!-- RecyclerView fills the entire screen to scroll fullscreen behind top/bottom elements -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTabs"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical" />
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:paddingBottom="128dp"
+        android:paddingTop="24dp"
+        android:clipToPadding="false"
+        android:scrollbars="none"
+        android:overScrollMode="never" />
 
-</LinearLayout>
+    <!-- Bottom transparent panel containing the rearranged buttons (Back, Clear All, Add FAB) -->
+    <LinearLayout
+        android:id="@+id/llButtons"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- Back Navigation ImageButton (Circular, size 48dp, with a solid circle background) -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_button_circle"
+            android:contentDescription="Go back"
+            android:src="@drawable/ic_arrow_back_thin"
+            app:tint="?attr/colorOnSurface" />
+
+        <!-- Spacer spring pushing everything to the right -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <!-- Clear All Button (Large pill button matching 96dp height, 28dp corner radius) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearAll"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="96dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:text="Clear All"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:cornerRadius="28dp"
+            app:backgroundTint="?attr/colorSurfaceVariant"
+            app:icon="@drawable/ic_clear_all_thin"
+            app:iconTint="@android:color/holo_red_dark"
+            app:iconSize="36dp"
+            app:iconPadding="12dp" />
+
+        <!-- Small Gap of 12dp between Clear All and Add Tab FAB (only visible when Clear All is shown) -->
+        <Space
+            android:id="@+id/btnGap"
+            android:layout_width="12dp"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!-- Add Tab FAB (96dp, dynamic Material You primary background) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnAddTab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="New tab"
+            android:src="@drawable/ic_add_thin"
+            app:fabCustomSize="96dp"
+            app:maxImageSize="48dp"
+            app:backgroundTint="?attr/colorPrimary"
+            app:tint="?attr/colorOnPrimary"
+            app:elevation="4dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

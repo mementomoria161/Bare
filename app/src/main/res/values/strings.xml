@@ -19,8 +19,10 @@
     <string name="btn_cancel">Cancel</string>
     <string name="btn_clear">Clear</string>
     <string name="btn_ok">OK</string>
-    <string name="desktop_site">Desktop Site</string>
-    <string name="desktop_site_desc">Load desktop version of pages</string>
     <string name="placeholder_search">Search or enter URL</string>
     <string name="toast_error_app_link">App link could not be opened</string>
+    <string name="custom_engine_dialog_title">Add Custom Search Engine</string>
+    <string name="custom_engine_name_hint">Engine Name (e.g. Startpage)</string>
+    <string name="custom_engine_url_hint">Search URL Prefix (e.g. https://domain.com/?q=)</string>
+    <string name="custom_engine_invalid">Please enter a valid URL prefix starting with http/https</string>
 </resources>

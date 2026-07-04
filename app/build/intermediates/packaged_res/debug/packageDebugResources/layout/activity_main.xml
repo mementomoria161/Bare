@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:tools="http://tools.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/window_background"
+    android:background="?android:attr/windowBackground"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     tools:context=".MainActivity">
 
     <!-- Fullscreen WebView container inside SwipeRefreshLayout -->
@@ -21,38 +23,174 @@
             android:id="@+id/webViewContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/window_background" />
+            android:background="?android:attr/windowBackground" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <!-- Floating Bottom Bar Card -->
+    <!-- Dark semi-transparent dim overlay when Unprocess settings menu is active -->
+    <View
+        android:id="@+id/settingsDimOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Unprocess-style Pop-up Settings Stack (No clipping during overshoot animations) -->
+    <LinearLayout
+        android:id="@+id/settingsPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:visibility="gone"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toTopOf="@id/bottomBarCard"
+        app:layout_constraintEnd_toEndOf="@id/bottomBarCard"
+        android:layout_marginBottom="12dp">
+
+        <!-- Horizontal Search Engine Row (Selector + Custom "+" Button) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Search Engine Selector (Cycles when clicked) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingSearchEngine"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:text="Search Engine Google"
+                android:textSize="15sp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                app:icon="@drawable/ic_logo_google"
+                app:iconPadding="8dp"
+                app:iconSize="20dp"
+                app:iconGravity="start"
+                app:backgroundTint="?attr/colorSurfaceVariant"
+                android:textColor="?attr/colorOnSurface"
+                app:iconTint="?attr/colorOnSurface" />
+
+            <!-- Add Custom Search Engine Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettingCustomSearch"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginStart="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                app:icon="@drawable/ic_add"
+                app:iconSize="24dp"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:backgroundTint="?attr/colorSurfaceVariant"
+                android:textColor="?attr/colorOnSurface"
+                app:iconTint="?attr/colorOnSurface" />
+
+        </LinearLayout>
+
+        <!-- Desktop Mode Switch Button (Indicated via color state) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettingDesktopSite"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginBottom="8dp"
+            android:text="Desktop View"
+            android:textSize="15sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            app:icon="@drawable/ic_desktop"
+            app:iconPadding="8dp"
+            app:iconSize="20dp"
+            app:iconGravity="start"
+            app:backgroundTint="?attr/colorSurfaceVariant"
+            android:textColor="?attr/colorOnSurface"
+            app:iconTint="?attr/colorOnSurface" />
+
+        <!-- Clear Cache/Cookies Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettingClearData"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:text="Clear Data"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="15sp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            app:icon="@drawable/ic_clear_all_thin"
+            app:iconPadding="8dp"
+            app:iconSize="20dp"
+            app:iconGravity="start"
+            app:backgroundTint="?attr/colorSurfaceVariant"
+            app:iconTint="@android:color/holo_red_dark" />
+
+    </LinearLayout>
+
+    <!-- Floating Bottom Bar Card (Adapted enclosing capsule) -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomBarCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="6dp"
-        app:cardBackgroundColor="@color/surface"
-        app:strokeColor="@color/border"
-        app:strokeWidth="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+        app:strokeWidth="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Toolbar Container -->
+        <!-- Toolbar Container (Fills width, padding is 9dp all around for card spacing symmetry) -->
         <LinearLayout
             android:id="@+id/bottomBar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
+            android:paddingStart="9dp"
+            android:paddingEnd="9dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp">
 
-            <!-- Address Bar Wrapper -->
+            <!-- Address Bar Wrapper (Stretches with weight=1, fully rounded pill, height 38dp) -->
             <FrameLayout
+                android:id="@+id/addressBarWrapper"
                 android:layout_width="0dp"
                 android:layout_height="38dp"
                 android:layout_weight="1"
@@ -63,12 +201,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center_vertical"
+                    android:gravity="start|center_vertical"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="40dp"
                     android:background="@null"
                     android:hint="@string/placeholder_search"
-                    android:textColorHint="@color/text_secondary"
-                    android:textColor="@color/text_primary"
+                    android:textColorHint="?attr/colorOnPrimaryContainer"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="14sp"
                     android:singleLine="true"
                     android:imeOptions="actionGo"
@@ -87,30 +226,31 @@
                     app:tint="@color/text_secondary" />
             </FrameLayout>
 
-            <!-- Settings Button -->
+            <!-- New Tab button (Floats on main screen next to URL bar, shown only on active sites, size 38dp) -->
             <ImageButton
-                android:id="@+id/btnSettings"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
+                android:id="@+id/btnNewTabMain"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="9dp"
                 android:background="@drawable/bg_button"
-                android:contentDescription="@string/action_settings"
-                android:src="@drawable/ic_settings"
+                android:contentDescription="New tab"
+                android:src="@drawable/ic_add_thin"
+                android:visibility="gone"
                 app:tint="@color/text_primary" />
 
-            <!-- Tab Overview Button Wrapper -->
+            <!-- Tab Overview Button Wrapper (Positioned left of Settings, size 38dp) -->
             <FrameLayout
                 android:id="@+id/btnTabOverview"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="9dp"
                 android:background="@drawable/bg_button"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_tabs"
                     app:tint="@color/text_primary" />
@@ -120,12 +260,23 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginTop="1dp"
                     android:text="1"
                     android:textColor="@color/text_primary"
-                    android:textSize="10sp"
+                    android:textSize="9sp"
                     android:textStyle="bold" />
             </FrameLayout>
+
+            <!-- Settings Button (Far right position, size 38dp) -->
+            <ImageButton
+                android:id="@+id/btnSettings"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="9dp"
+                android:background="@drawable/bg_button"
+                android:contentDescription="@string/action_settings"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/text_primary" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
@@ -135,7 +286,7 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="3dp"
-        android:progressTint="@color/primary"
+        android:progressTint="?attr/colorPrimary"
         android:progressBackgroundTint="@android:color/transparent"
         android:indeterminate="false"
         android:max="100"

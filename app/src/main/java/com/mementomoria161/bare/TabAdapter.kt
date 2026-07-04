@@ -15,6 +15,12 @@ import java.net.URI
 class TabAdapter(
     private val tabs: List<MainActivity.Tab>,
     private val activeTabIndex: Int,
+    private val colorPrimary: Int,
+    private val colorPrimaryContainer: Int,
+    private val colorOutline: Int,
+    private val colorSurface: Int,
+    private val colorSurfaceVariant: Int,
+    private val colorOnSurfaceVariant: Int,
     private val onTabSelected: (Int) -> Unit,
     private val onTabClosed: (Int) -> Unit
 ) : RecyclerView.Adapter<TabAdapter.TabViewHolder>() {
@@ -37,26 +43,22 @@ class TabAdapter(
         holder.tvTitle.text = if (tab.title.isEmpty() || tab.title == "about:blank") "New Tab" else tab.title
         holder.tvUrl.text = getSimplifiedUrl(tab.url)
 
-        val context = holder.itemView.context
-
         // Bind Webpage Screenshot Thumbnail or default launcher icon
         if (tab.thumbnail != null) {
             holder.ivThumbnail.setImageBitmap(tab.thumbnail)
             holder.ivThumbnail.imageTintList = null
         } else {
             holder.ivThumbnail.setImageResource(R.drawable.ic_launcher)
-            holder.ivThumbnail.imageTintList = android.content.res.ColorStateList.valueOf(context.getColor(R.color.text_secondary))
+            holder.ivThumbnail.imageTintList = android.content.res.ColorStateList.valueOf(colorOnSurfaceVariant)
         }
         
-        // Highlight active tab with custom stroke and background color (pill-shaped)
+        // Remove borders completely (strokeWidth = 0) and use filled color states
+        holder.cardView.strokeWidth = 0
         if (position == activeTabIndex) {
-            holder.cardView.strokeColor = context.getColor(R.color.primary)
-            holder.cardView.strokeWidth = dpToPx(context, 2)
-            holder.cardView.setCardBackgroundColor(context.getColor(R.color.primary_light))
+            holder.cardView.setCardBackgroundColor(colorPrimaryContainer)
         } else {
-            holder.cardView.strokeColor = context.getColor(R.color.border)
-            holder.cardView.strokeWidth = dpToPx(context, 1)
-            holder.cardView.setCardBackgroundColor(context.getColor(R.color.surface))
+            // Inactive tabs match the style of Unprocess inactive settings buttons
+            holder.cardView.setCardBackgroundColor(colorSurfaceVariant)
         }
 
         holder.cardView.setOnClickListener {

@@ -2008,8 +2008,10 @@
     <string name="clear_data_success">Browser data cleared</string>
     <string name="clear_text_end_icon_content_description">Clear text</string>
     <string name="close_tab">Close Tab</string>
-    <string name="desktop_site">Desktop Site</string>
-    <string name="desktop_site_desc">Load desktop version of pages</string>
+    <string name="custom_engine_dialog_title">Add Custom Search Engine</string>
+    <string name="custom_engine_invalid">Please enter a valid URL prefix starting with http/https</string>
+    <string name="custom_engine_name_hint">Engine Name (e.g. Startpage)</string>
+    <string name="custom_engine_url_hint">Search URL Prefix (e.g. https://domain.com/?q=)</string>
     <string description="Screen reader announcement for when a checkbox is on error. [CHAR LIMIT=NONE]" name="error_a11y_label">
     Error: invalid
   </string>
