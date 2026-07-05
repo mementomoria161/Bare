@@ -38,6 +38,9 @@
     <string name="search_prefix_ecosia">https://www.ecosia.org/search?q=</string>
     <string name="search_prefix_google">https://www.google.com/search?q=</string>
     <string name="toast_error_app_link">App link could not be opened</string>
+    <style name="ShapeAppearance.Bare.FAB" parent="">
+        <item name="cornerSize">28dp</item>
+    </style>
     <style name="Theme.Bare" parent="Theme.Material3.DayNight.NoActionBar">
         
         <item name="colorPrimary">@color/primary</item>

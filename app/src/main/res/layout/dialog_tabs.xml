@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
 
-        <!-- Clear All Button (Large pill button matching 96dp height, 28dp corner radius) -->
+        <!-- Clear All Button (Tonal button matching 96dp height, unified custom FAB shape) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearAll"
             style="@style/Widget.Material3.Button.TonalButton"
@@ -65,7 +65,7 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:visibility="gone"
-            app:cornerRadius="28dp"
+            app:shapeAppearance="@style/ShapeAppearance.Bare.FAB"
             app:backgroundTint="?attr/colorSurfaceVariant"
             app:icon="@drawable/ic_clear_all_thin"
             app:iconTint="@android:color/holo_red_dark"
@@ -79,7 +79,7 @@
             android:layout_height="match_parent"
             android:visibility="gone" />
 
-        <!-- Add Tab FAB (96dp, dynamic Material You primary background) -->
+        <!-- Add Tab FAB (96dp, dynamic Material You primary background, unified custom FAB shape) -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnAddTab"
             android:layout_width="wrap_content"
@@ -87,7 +87,8 @@
             android:contentDescription="New tab"
             android:src="@drawable/ic_add_thin"
             app:fabCustomSize="96dp"
-            app:maxImageSize="48dp"
+            app:maxImageSize="36dp"
+            app:shapeAppearance="@style/ShapeAppearance.Bare.FAB"
             app:backgroundTint="?attr/colorPrimary"
             app:tint="?attr/colorOnPrimary"
             app:elevation="4dp" />

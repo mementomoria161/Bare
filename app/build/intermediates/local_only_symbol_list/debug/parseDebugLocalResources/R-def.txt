@@ -20,6 +20,7 @@ drawable ic_add
 drawable ic_add_thin
 drawable ic_arrow_back_thin
 drawable ic_clear_all_thin
+drawable ic_clock
 drawable ic_close
 drawable ic_close_thin
 drawable ic_desktop
@@ -40,11 +41,13 @@ id btnAbout
 id btnAddTab
 id btnBack
 id btnClearAll
+id btnClearAllInline
 id btnClearData
 id btnCloseTab
 id btnGap
 id btnNewTabMain
 id btnRefresh
+id btnSettingAutoClose
 id btnSettingClearData
 id btnSettingCustomSearch
 id btnSettingDesktopSite
@@ -57,6 +60,7 @@ id cardEngineDuckDuckGo
 id cardEngineEcosia
 id cardEngineGoogle
 id cardView
+id clearAllContainer
 id dialogRoot
 id ivCustomEngine
 id ivTabThumbnail
@@ -64,10 +68,12 @@ id llButtons
 id llSearchEngines
 id progressBar
 id rvTabs
+id rvTabsInline
 id settingsDimOverlay
 id settingsPanel
 id swipeRefresh
 id switchDesktopMode
+id tabsPanel
 id textContainer
 id thumbnailCard
 id tvTabCount
@@ -104,5 +110,6 @@ string search_prefix_duckduckgo
 string search_prefix_ecosia
 string search_prefix_google
 string toast_error_app_link
+style ShapeAppearance.Bare.FAB
 style Theme.Bare
 style Theme.Bare.FullscreenDialog

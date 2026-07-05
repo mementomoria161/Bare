@@ -54,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         var title: String = "New Tab",
         var url: String = "about:blank",
         var isLoading: Boolean = false,
-        var thumbnail: Bitmap? = null
+        var thumbnail: Bitmap? = null,
+        var lastActiveTime: Long = System.currentTimeMillis()
     )
 
     private val tabList = mutableListOf<Tab>()
@@ -79,11 +80,18 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnSettingSearchEngine: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingCustomSearch: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingDesktopSite: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingAutoClose: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingClearData: com.google.android.material.button.MaterialButton
 
     private var isSettingsOpen = false
     private var isAnimatingSettings = false
     private var currentStatusColor = android.graphics.Color.TRANSPARENT
+
+    // Unprocess tabs views
+    private lateinit var tabsPanel: LinearLayout
+    private lateinit var clearAllContainer: FrameLayout
+    private var isTabsOpen = false
+    private var isAnimatingTabs = false
 
     // SharedPreferences for settings
     private lateinit var sharedPreferences: SharedPreferences
@@ -104,8 +112,9 @@ class MainActivity : AppCompatActivity() {
             window.isStatusBarContrastEnforced = false
         }
         
-        // Enforce transparent navigation bar at all times
+        // Enforce transparent navigation and status bar at all times
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
         
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -131,15 +140,18 @@ class MainActivity : AppCompatActivity() {
         btnSettingSearchEngine = findViewById(R.id.btnSettingSearchEngine)
         btnSettingCustomSearch = findViewById(R.id.btnSettingCustomSearch)
         btnSettingDesktopSite = findViewById(R.id.btnSettingDesktopSite)
+        btnSettingAutoClose = findViewById(R.id.btnSettingAutoClose)
         btnSettingClearData = findViewById(R.id.btnSettingClearData)
+        tabsPanel = findViewById(R.id.tabsPanel)
+        clearAllContainer = findViewById(R.id.clearAllContainer)
 
         setupEdgeToEdgeInsets()
         setupAddressBarBehavior()
         setupActionButtons()
         setupBackNavigation()
 
-        // Create the initial blank tab
-        addNewTab("about:blank")
+        // Restore tabs state or create new one
+        restoreTabsState()
     }
 
     private fun setupEdgeToEdgeInsets() {
@@ -163,6 +175,19 @@ class MainActivity : AppCompatActivity() {
             
             insets
         }
+
+        // Apply dynamic top padding to rvTabsInline to clear the status bar but allow scrolling under it
+        val rvTabsInline = findViewById<com.mementomoria161.bare.FadingRecyclerView>(R.id.rvTabsInline)
+        ViewCompat.setOnApplyWindowInsetsListener(rvTabsInline) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                view.paddingLeft,
+                systemBars.top + dpToPx(this, 24),
+                view.paddingRight,
+                view.paddingBottom
+            )
+            insets
+        }
     }
 
     private fun setupAddressBarBehavior() {
@@ -182,14 +207,18 @@ class MainActivity : AppCompatActivity() {
                     addressInput.selectAll()
                 }
                 
-                // Clear button icon
-                if (hasFocus) {
-                    btnRefresh.setImageResource(R.drawable.ic_close)
-                } else {
-                    updateRefreshIconState()
-                }
+                updateAddressBarButtonsState()
             }
         }
+
+        // Show/hide clear button dynamically as user types
+        addressInput.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateAddressBarButtonsState()
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
 
         // Action when pressing "Go" in soft keyboard
         addressInput.setOnEditorActionListener { _, actionId, event ->
@@ -233,10 +262,9 @@ class MainActivity : AppCompatActivity() {
             addNewTab("about:blank")
         }
 
-        // Tab Overview Fullscreen Dialog
+        // Tab Overview Inline toggle
         btnTabOverview.setOnClickListener {
-            if (isSettingsOpen) toggleSettingsMenu()
-            showTabsOverviewDialog()
+            toggleTabsOverview()
         }
 
         // Unprocess settings pop-up triggers
@@ -245,7 +273,29 @@ class MainActivity : AppCompatActivity() {
         }
 
         settingsDimOverlay.setOnClickListener {
-            if (isSettingsOpen) toggleSettingsMenu()
+            if (isSettingsOpen) {
+                toggleSettingsMenu()
+            } else if (isTabsOpen) {
+                toggleTabsOverview()
+            }
+        }
+
+        // Bind inline tab clear all button
+        val btnClearAllInline = findViewById<Button>(R.id.btnClearAllInline)
+        btnClearAllInline.setOnClickListener {
+            MaterialAlertDialogBuilder(this@MainActivity)
+                .setTitle("Close all tabs?")
+                .setMessage("This will close all your open tabs.")
+                .setNegativeButton(getString(R.string.btn_cancel), null)
+                .setPositiveButton("Close All") { _, _ ->
+                    while (tabList.isNotEmpty()) {
+                        val tab = tabList.removeAt(0)
+                        webViewContainer.removeView(tab.webView)
+                        tab.webView.destroy()
+                    }
+                    toggleTabsOverview()
+                }
+                .show()
         }
 
         btnSettingSearchEngine.setOnClickListener {
@@ -260,6 +310,10 @@ class MainActivity : AppCompatActivity() {
             toggleDesktopSiteSetting()
         }
 
+        btnSettingAutoClose.setOnClickListener {
+            cycleAutoCloseSetting()
+        }
+
         btnSettingClearData.setOnClickListener {
             handleClearDataSetting()
         }
@@ -271,6 +325,10 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 if (isSettingsOpen) {
                     toggleSettingsMenu()
+                    return
+                }
+                if (isTabsOpen) {
+                    toggleTabsOverview()
                     return
                 }
                 if (activeTabIndex in tabList.indices) {
@@ -294,18 +352,31 @@ class MainActivity : AppCompatActivity() {
     private fun showBottomBar() {
         if (!isBottomBarHidden) return
         isBottomBarHidden = false
+        swipeRefresh.isEnabled = false // Disable pull-to-refresh while animating to prevent overlap
+        bottomBarCard.animate().cancel()
         bottomBarCard.animate()
             .translationY(0f)
             .setInterpolator(android.view.animation.DecelerateInterpolator())
             .setDuration(250)
+            .withEndAction {
+                if (activeTabIndex in tabList.indices) {
+                    val webView = tabList[activeTabIndex].webView
+                    val isAtTop = !webView.canScrollVertically(-1)
+                    val url = webView.url ?: ""
+                    val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
+                    swipeRefresh.isEnabled = isAtTop && !isBlank
+                }
+            }
             .start()
     }
 
     private fun hideBottomBar() {
         if (isBottomBarHidden || isSettingsOpen) return // Never hide if settings pop-up is active
         isBottomBarHidden = true
+        swipeRefresh.isEnabled = false // Disable pull-to-refresh when bottom bar is hidden
         val params = bottomBarCard.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
         val totalMargin = params.bottomMargin + bottomBarCard.height.toFloat() + dpToPx(this, 16).toFloat()
+        bottomBarCard.animate().cancel()
         bottomBarCard.animate()
             .translationY(totalMargin)
             .setInterpolator(android.view.animation.AccelerateInterpolator())
@@ -314,14 +385,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Unprocess settings menu toggle & bottom-to-top pop-up overshoot animations
-    private fun toggleSettingsMenu() {
+    private fun toggleSettingsMenu(onFinished: (() -> Unit)? = null) {
         if (isAnimatingSettings) return
+        if (isTabsOpen) {
+            toggleTabsOverview(onFinished = { toggleSettingsMenu(onFinished) })
+            return
+        }
         isAnimatingSettings = true
         isSettingsOpen = !isSettingsOpen
 
         val toggles = listOf(
             btnSettingSearchEngine.parent as View, // Grouped Search Engine Row container
             btnSettingDesktopSite,
+            btnSettingAutoClose,
             btnSettingClearData
         )
 
@@ -329,7 +405,8 @@ class MainActivity : AppCompatActivity() {
             updateSettingsButtonsUI()
 
             // Dim the top status bar in sync with settings dim overlay
-            window.statusBarColor = getDimmedColor(currentStatusColor)
+            val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = false
 
             settingsDimOverlay.animate().cancel()
             toggles.forEach { it.animate().cancel() }
@@ -375,7 +452,8 @@ class MainActivity : AppCompatActivity() {
             }
         } else {
             // Restore normal status bar color when settings dim overlay closes
-            window.statusBarColor = if (currentStatusColor == android.graphics.Color.TRANSPARENT || currentStatusColor == (if ((resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES) android.graphics.Color.parseColor("#1A1A1A") else android.graphics.Color.parseColor("#F9FAFB"))) android.graphics.Color.TRANSPARENT else currentStatusColor
+            val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = !isColorDark(currentStatusColor)
 
             settingsDimOverlay.animate().cancel()
             toggles.forEach { it.animate().cancel() }
@@ -406,12 +484,227 @@ class MainActivity : AppCompatActivity() {
                             override fun onAnimationEnd(animation: android.animation.Animator) {
                                 settingsPanel.visibility = View.GONE
                                 isAnimatingSettings = false
+                                onFinished?.invoke()
                             }
                         }
                     } else null)
                     .start()
             }
         }
+    }
+
+    private fun toggleTabsOverview(onFinished: (() -> Unit)? = null) {
+        if (isAnimatingTabs) return
+        if (isSettingsOpen) {
+            toggleSettingsMenu(onFinished = { toggleTabsOverview(onFinished) })
+            return
+        }
+        isAnimatingTabs = true
+        isTabsOpen = !isTabsOpen
+
+        val rvTabsInline = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTabsInline)
+        val btnClearAllInline = findViewById<Button>(R.id.btnClearAllInline)
+
+        if (isTabsOpen) {
+            closeActiveTabIfBlank()
+            
+            if (tabList.size == 1) {
+                val activeTab = tabList[0]
+                val isBlank = activeTab.url == "about:blank" || activeTab.url.startsWith("file:///android_asset/") || activeTab.webView.url == null || activeTab.webView.url == "about:blank" || activeTab.webView.url!!.startsWith("file:///android_asset/")
+                if (isBlank) {
+                    val tabToRemove = tabList[0]
+                    webViewContainer.removeView(tabToRemove.webView)
+                    tabToRemove.webView.destroy()
+                    tabList.clear()
+                    activeTabIndex = -1
+                }
+            }
+
+            btnClearAllInline.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
+            clearAllContainer.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
+            setupInlineTabAdapter(rvTabsInline, btnClearAllInline)
+
+            // Dim status bar and overlay
+            val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = false
+
+            settingsDimOverlay.animate().cancel()
+            tabsPanel.animate().cancel()
+
+            settingsDimOverlay.visibility = View.VISIBLE
+            settingsDimOverlay.alpha = 0f
+            settingsDimOverlay.animate()
+                .alpha(1f)
+                .setDuration(250)
+                .setListener(null)
+                .start()
+
+            // Display panel wrapper bündig so we can animate its items individually
+            tabsPanel.visibility = View.VISIBLE
+            tabsPanel.alpha = 1f
+            tabsPanel.translationY = 0f
+
+            // Animate Clear All button container in from bottom with overshoot ( reinbabbeln)
+            if (clearAllContainer.visibility == View.VISIBLE) {
+                clearAllContainer.animate().cancel()
+                clearAllContainer.alpha = 0f
+                clearAllContainer.scaleX = 0.3f
+                clearAllContainer.scaleY = 0.3f
+                clearAllContainer.translationY = dpToPx(this, 100).toFloat()
+                clearAllContainer.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .translationY(0f)
+                    .setDuration(280)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
+                    .start()
+            }
+
+            // Animate visible RecyclerView tab cards in a staggered pop-up overshoot sequence
+            rvTabsInline.post {
+                for (i in 0 until rvTabsInline.childCount) {
+                    val child = rvTabsInline.getChildAt(i)
+                    child.animate().cancel()
+                    child.alpha = 0f
+                    child.scaleX = 0.3f
+                    child.scaleY = 0.3f
+                    child.translationY = dpToPx(this@MainActivity, 100).toFloat()
+                }
+
+                // RecyclerView layout pass complete; show recycler view now that all children are pre-hidden/scaled
+                rvTabsInline.alpha = 1f
+
+                for (i in 0 until rvTabsInline.childCount) {
+                    val child = rvTabsInline.getChildAt(i)
+                    child.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .translationY(0f)
+                        .setDuration(280)
+                        .setStartDelay(120L + i * 60L)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                        .start()
+                }
+            }
+
+            isAnimatingTabs = false
+        } else {
+            // Restore status bar
+            val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+            windowInsetsController.isAppearanceLightStatusBars = !isColorDark(currentStatusColor)
+
+            settingsDimOverlay.animate().cancel()
+            tabsPanel.animate().cancel()
+
+            settingsDimOverlay.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .setListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        settingsDimOverlay.visibility = View.GONE
+                    }
+                })
+                .start()
+
+            val targetTranslationY = dpToPx(this, 100).toFloat()
+            val childCount = rvTabsInline.childCount
+
+            // Stagger visible tab cards collapsing downward
+            for (i in 0 until childCount) {
+                val child = rvTabsInline.getChildAt(i)
+                child.animate().cancel()
+                child.animate()
+                    .alpha(0f)
+                    .scaleX(0.3f)
+                    .scaleY(0.3f)
+                    .translationY(targetTranslationY)
+                    .setDuration(200)
+                    .setStartDelay(i * 40L)
+                    .setInterpolator(android.view.animation.AccelerateInterpolator())
+                    .start()
+            }
+
+            // Animate Clear All button container downward last
+            if (clearAllContainer.visibility == View.VISIBLE) {
+                clearAllContainer.animate().cancel()
+                clearAllContainer.animate()
+                    .alpha(0f)
+                    .scaleX(0.3f)
+                    .scaleY(0.3f)
+                    .translationY(targetTranslationY)
+                    .setDuration(200)
+                    .setStartDelay(childCount * 40L)
+                    .setInterpolator(android.view.animation.AccelerateInterpolator())
+                    .start()
+            }
+
+            // Fade out the panel container
+            tabsPanel.animate()
+                .alpha(0f)
+                .setDuration(250)
+                .setStartDelay(childCount * 40L)
+                .setListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        tabsPanel.visibility = View.GONE
+                        isAnimatingTabs = false
+                        onFinished?.invoke()
+                        if (tabList.isEmpty()) {
+                            addNewTab("about:blank")
+                        }
+                    }
+                })
+                .start()
+        }
+    }
+
+    private fun setupInlineTabAdapter(rvTabs: androidx.recyclerview.widget.RecyclerView, btnClearAll: Button) {
+        rvTabs.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        val typedValue = TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+        val colorPrimary = typedValue.data
+        
+        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
+        val colorPrimaryContainer = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorOutline, typedValue, true)
+        val colorOutline = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+        val colorSurface = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
+        val colorSurfaceVariant = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+        val colorOnSurfaceVariant = typedValue.data
+
+        val adapter = TabAdapter(
+            tabs = tabList,
+            activeTabIndex = activeTabIndex,
+            colorPrimary = colorPrimary,
+            colorPrimaryContainer = colorPrimaryContainer,
+            colorOutline = colorOutline,
+            colorSurface = colorSurface,
+            colorSurfaceVariant = colorSurfaceVariant,
+            colorOnSurfaceVariant = colorOnSurfaceVariant,
+            onTabSelected = { selectedIndex ->
+                selectTab(selectedIndex)
+                toggleTabsOverview()
+            },
+            onTabClosed = { closedIndex ->
+                closeTab(closedIndex, autoCreate = false)
+                rvTabs.adapter?.notifyDataSetChanged()
+                
+                btnClearAll.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
+                clearAllContainer.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
+                if (tabList.isEmpty()) {
+                    toggleTabsOverview()
+                }
+            }
+        )
+        rvTabs.adapter = adapter
     }
 
     private fun updateSettingsButtonsUI() {
@@ -452,6 +745,31 @@ class MainActivity : AppCompatActivity() {
             theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
             btnSettingDesktopSite.setTextColor(typedValue.data)
             btnSettingDesktopSite.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+        }
+
+        // 3. Auto-Close Tabs label formatting
+        val autoClose = sharedPreferences.getString("auto_close_tabs", "never") ?: "never"
+        val autoCloseLabel = when (autoClose) {
+            "never" -> "Never"
+            "day" -> "1 Day"
+            "week" -> "1 Week"
+            "month" -> "1 Month"
+            else -> "Never"
+        }
+        btnSettingAutoClose.text = "Auto-Close: $autoCloseLabel"
+        
+        if (autoClose != "never") {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
+            btnSettingAutoClose.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)
+            btnSettingAutoClose.setTextColor(typedValue.data)
+            btnSettingAutoClose.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+        } else {
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
+            btnSettingAutoClose.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
+            btnSettingAutoClose.setTextColor(typedValue.data)
+            btnSettingAutoClose.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
         }
     }
 
@@ -631,16 +949,19 @@ class MainActivity : AppCompatActivity() {
             <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
             <style>
-              body {
+              html, body {
                 background-color: $bgColor;
                 color: $textColor;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                height: 100vh;
+                justify-content: flex-start;
+                width: 100%;
+                height: 100%;
                 margin: 0;
+                overflow: hidden;
+                touch-action: none;
                 user-select: none;
               }
               .logo {
@@ -648,6 +969,7 @@ class MainActivity : AppCompatActivity() {
                 font-weight: 800;
                 letter-spacing: -2px;
                 color: $primaryColor;
+                margin-top: 33vh;
                 margin-bottom: 8px;
                 animation: fadeIn 0.8s ease-out;
               }
@@ -661,7 +983,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Tab Management
+    private fun closeActiveTabIfBlank() {
+        if (activeTabIndex in tabList.indices && tabList.size > 1) {
+            val activeTab = tabList[activeTabIndex]
+            val isBlank = activeTab.url == "about:blank" || activeTab.url.startsWith("file:///android_asset/") || activeTab.webView.url == null || activeTab.webView.url == "about:blank" || activeTab.webView.url!!.startsWith("file:///android_asset/")
+            if (isBlank) {
+                val indexToClose = activeTabIndex
+                val tabToRemove = tabList[indexToClose]
+                webViewContainer.removeView(tabToRemove.webView)
+                tabToRemove.webView.destroy()
+                tabList.removeAt(indexToClose)
+                
+                if (activeTabIndex >= tabList.size) {
+                    activeTabIndex = tabList.size - 1
+                }
+                if (activeTabIndex < 0) {
+                    activeTabIndex = 0
+                }
+            }
+        }
+    }
+
+    private fun cleanBlankTabs(keepIndex: Int = -1) {
+        val iterator = tabList.listIterator()
+        var index = 0
+        while (iterator.hasNext()) {
+            val tab = iterator.next()
+            val isBlank = tab.url == "about:blank" || tab.url.startsWith("file:///android_asset/") || tab.webView.url == null || tab.webView.url == "about:blank" || tab.webView.url!!.startsWith("file:///android_asset/")
+            if (isBlank && index != keepIndex && tabList.size > 1) {
+                webViewContainer.removeView(tab.webView)
+                tab.webView.destroy()
+                iterator.remove()
+                if (index < activeTabIndex) {
+                    activeTabIndex--
+                }
+            } else {
+                index++
+            }
+        }
+        if (activeTabIndex >= tabList.size) {
+            activeTabIndex = tabList.size - 1
+        }
+        if (activeTabIndex < 0) {
+            activeTabIndex = 0
+        }
+    }
+
+    // Tab Management
     private fun addNewTab(url: String = "about:blank") {
+        closeActiveTabIfBlank()
+        if (isTabsOpen) {
+            toggleTabsOverview()
+        }
         val webView = createNewWebView()
         val tab = Tab(webView = webView, url = url)
         tabList.add(tab)
@@ -673,19 +1046,35 @@ class MainActivity : AppCompatActivity() {
             webView.loadUrl(url)
         }
         selectTab(tabList.lastIndex)
+
+        if (url == "about:blank") {
+            addressInput.postDelayed({
+                addressInput.requestFocus()
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.showSoftInput(addressInput, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+            }, 100)
+        }
+        saveTabsState()
     }
 
     private fun selectTab(index: Int) {
         if (index !in tabList.indices) return
+        val targetTab = tabList[index]
+        
+        cleanBlankTabs(index)
+        
+        val finalIndex = tabList.indexOf(targetTab)
+        if (finalIndex !in tabList.indices) return
 
         // Capture thumbnail of deactivated tab
-        if (activeTabIndex in tabList.indices) {
+        if (activeTabIndex in tabList.indices && activeTabIndex != finalIndex) {
             captureTabThumbnail(tabList[activeTabIndex])
             tabList[activeTabIndex].webView.visibility = View.GONE
         }
 
-        activeTabIndex = index
+        activeTabIndex = finalIndex
         val activeTab = tabList[activeTabIndex]
+        activeTab.lastActiveTime = System.currentTimeMillis()
         
         // Show selected tab
         activeTab.webView.visibility = View.VISIBLE
@@ -721,9 +1110,10 @@ class MainActivity : AppCompatActivity() {
         
         // Set SwipeRefresh eligibility
         swipeRefresh.isEnabled = !activeTab.webView.canScrollVertically(-1)
+        saveTabsState()
     }
 
-    private fun closeTab(index: Int) {
+    private fun closeTab(index: Int, autoCreate: Boolean = true) {
         if (index !in tabList.indices) return
 
         val tabToRemove = tabList[index]
@@ -732,7 +1122,9 @@ class MainActivity : AppCompatActivity() {
         tabList.removeAt(index)
 
         if (tabList.isEmpty()) {
-            addNewTab("about:blank")
+            if (autoCreate) {
+                addNewTab("about:blank")
+            }
         } else {
             // Fix active index reference
             if (activeTabIndex >= tabList.size) {
@@ -747,19 +1139,54 @@ class MainActivity : AppCompatActivity() {
                 updateTabButtonCount()
             }
         }
+        saveTabsState()
     }
 
     private fun updateTabButtonCount() {
         tvTabCount.text = tabList.size.toString()
+        updateTabOverviewButtonVisibility()
+    }
+
+    private fun updateTabOverviewButtonVisibility() {
+        val nonBlankCount = tabList.count { tab ->
+            val url = tab.webView.url ?: tab.url
+            !(url == "about:blank" || url.startsWith("file:///android_asset/"))
+        }
+        btnTabOverview.visibility = if (nonBlankCount >= 1) View.VISIBLE else View.GONE
     }
 
     private fun updateRefreshIconState() {
-        if (activeTabIndex in tabList.indices) {
-            val activeTab = tabList[activeTabIndex]
-            if (activeTab.isLoading) {
+        updateAddressBarButtonsState()
+    }
+
+    private fun updateAddressBarButtonsState() {
+        val hasFocus = addressInput.isFocused
+        val text = addressInput.text.toString()
+        
+        if (hasFocus) {
+            if (text.isNotEmpty()) {
+                btnRefresh.visibility = View.VISIBLE
                 btnRefresh.setImageResource(R.drawable.ic_close)
             } else {
-                btnRefresh.setImageResource(R.drawable.ic_refresh)
+                btnRefresh.visibility = View.GONE
+            }
+        } else {
+            if (activeTabIndex in tabList.indices) {
+                val activeTab = tabList[activeTabIndex]
+                val url = activeTab.webView.url ?: activeTab.url
+                val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
+                if (isBlank) {
+                    btnRefresh.visibility = View.GONE
+                } else {
+                    btnRefresh.visibility = View.VISIBLE
+                    if (activeTab.isLoading) {
+                        btnRefresh.setImageResource(R.drawable.ic_close)
+                    } else {
+                        btnRefresh.setImageResource(R.drawable.ic_refresh)
+                    }
+                }
+            } else {
+                btnRefresh.visibility = View.GONE
             }
         }
     }
@@ -808,7 +1235,7 @@ class MainActivity : AppCompatActivity() {
         activeTab.url = "about:blank"
         activeTab.title = "New Tab"
         activeTab.webView.loadDataWithBaseURL("file:///android_asset/", getStartPageHtml(), "text/html", "UTF-8", null)
-        swipeRefresh.isEnabled = true // Empty page is always at top
+        swipeRefresh.isEnabled = false // Disable pull-to-refresh on blank page
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -834,16 +1261,43 @@ class MainActivity : AppCompatActivity() {
         val isDesktop = sharedPreferences.getBoolean("desktop_mode", false)
         applyDesktopModeSetting(webView, isDesktop)
 
+        // Gesture detector to capture swipe/drag gestures even on non-scrollable pages
+        val gestureDetector = android.view.GestureDetector(this, object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onScroll(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+                val url = webView.url ?: ""
+                val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
+                if (!isBlank) {
+                    if (distanceY > 10) {
+                        hideBottomBar()
+                    } else if (distanceY < -10) {
+                        showBottomBar()
+                    }
+                }
+                return false
+            }
+        })
+
+        webView.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            v.performClick()
+            false
+        }
+
         // Listen to scrolls on the WebView to resolve pull-to-refresh conflicts and scroll-to-hide
         webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
             // Continuously update colors on scroll
             updateDynamicColors(webView)
 
-            val dy = scrollY - oldScrollY
-            if (dy > 10) {
-                hideBottomBar()
-            } else if (dy < -10) {
-                showBottomBar()
+            val url = webView.url ?: ""
+            val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
+
+            if (!isBlank) {
+                val dy = scrollY - oldScrollY
+                if (dy > 10) {
+                    hideBottomBar()
+                } else if (dy < -10) {
+                    showBottomBar()
+                }
             }
 
             // Always display toolbar at the very top of page
@@ -853,7 +1307,7 @@ class MainActivity : AppCompatActivity() {
             }
             
             if (findTabIndexForWebView(webView) == activeTabIndex) {
-                swipeRefresh.isEnabled = isAtTop
+                swipeRefresh.isEnabled = isAtTop && !isBlank
             }
         }
 
@@ -893,6 +1347,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         updateRefreshIconState()
                         updateNewTabButtonVisibility()
+                        updateTabOverviewButtonVisibility()
                         resetUiColors()
                         showBottomBar() // Display bottom bar on page reload
                     }
@@ -919,6 +1374,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         updateRefreshIconState()
                         updateNewTabButtonVisibility()
+                        updateTabOverviewButtonVisibility()
                         // Update scroll refresh eligibility
                         swipeRefresh.isEnabled = !webView.canScrollVertically(-1)
                     }
@@ -1005,15 +1461,22 @@ class MainActivity : AppCompatActivity() {
             swipeRefresh.setBackgroundColor(pixelColor)
             webViewContainer.setBackgroundColor(pixelColor)
 
+            swipeRefresh.setColorSchemeColors(pixelColor)
+            val typedValue = android.util.TypedValue()
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+            swipeRefresh.setProgressBackgroundColorSchemeColor(typedValue.data)
+
             currentStatusColor = pixelColor
-            window.statusBarColor = if (isSettingsOpen) getDimmedColor(pixelColor) else pixelColor
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
             // Keep dynamic system navigation bar 100% transparent
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
             val isDark = isColorDark(pixelColor)
             val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = !isDark
+            windowInsetsController.isAppearanceLightStatusBars = if (isSettingsOpen || isTabsOpen) false else !isDark
             windowInsetsController.isAppearanceLightNavigationBars = !isDark
+
+            (progressBar as? CapsuleProgressView)?.setStrokeColor(pixelColor)
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1030,12 +1493,21 @@ class MainActivity : AppCompatActivity() {
             webViewContainer.setBackgroundColor(systemColor)
             
             currentStatusColor = systemColor
-            window.statusBarColor = if (isSettingsOpen) getDimmedColor(systemColor) else android.graphics.Color.TRANSPARENT
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
             val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
-            windowInsetsController.isAppearanceLightStatusBars = !isDark
+            windowInsetsController.isAppearanceLightStatusBars = if (isSettingsOpen || isTabsOpen) false else !isDark
             windowInsetsController.isAppearanceLightNavigationBars = !isDark
+
+            val typedValue = android.util.TypedValue()
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+            swipeRefresh.setColorSchemeColors(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+            swipeRefresh.setProgressBackgroundColorSchemeColor(typedValue.data)
+
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+            (progressBar as? CapsuleProgressView)?.setStrokeColor(typedValue.data)
             
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1069,118 +1541,125 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Fullscreen tab overview dialog with bottom-rearranged buttons (Back, Clear All, Add FAB)
-    private fun showTabsOverviewDialog() {
-        if (activeTabIndex in tabList.indices) {
-            captureTabThumbnail(tabList[activeTabIndex])
-        }
+    override fun onPause() {
+        super.onPause()
+        saveTabsState()
+    }
 
-        val dialog = Dialog(this, R.style.Theme_Bare_FullscreenDialog)
-        val view = LayoutInflater.from(this).inflate(R.layout.dialog_tabs, null)
-        dialog.setContentView(view)
-
-        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-
-        val dialogRoot = view.findViewById<View>(R.id.dialogRoot)
-        val btnBack = view.findViewById<ImageButton>(R.id.btnBack)
-        val btnClearAll = view.findViewById<Button>(R.id.btnClearAll)
-        val btnGap = view.findViewById<View>(R.id.btnGap)
-        val btnAddTab = view.findViewById<FloatingActionButton>(R.id.btnAddTab)
-        val rvTabs = view.findViewById<RecyclerView>(R.id.rvTabs)
-
-        // Apply edge-to-edge window padding (pad top only to avoid status bar overlaps)
-        ViewCompat.setOnApplyWindowInsetsListener(dialogRoot) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(v.paddingLeft, systemBars.top, v.paddingRight, 0)
-            insets
-        }
-
-        rvTabs.layoutManager = LinearLayoutManager(this)
+    private fun cycleAutoCloseSetting() {
+        val options = listOf("never", "day", "week", "month")
+        val current = sharedPreferences.getString("auto_close_tabs", "never") ?: "never"
+        val idx = options.indexOf(current)
+        val nextIdx = if (idx == -1) 0 else (idx + 1) % options.size
+        val nextOption = options[nextIdx]
         
-        // Dynamically extract Material You color values from the active system theme
-        val typedValue = TypedValue()
-        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
-        val colorPrimary = typedValue.data
+        sharedPreferences.edit().putString("auto_close_tabs", nextOption).apply()
+        updateSettingsButtonsUI()
+        applyAutoCloseTabs()
+    }
+
+    private fun applyAutoCloseTabs() {
+        val setting = sharedPreferences.getString("auto_close_tabs", "never") ?: "never"
+        if (setting == "never") return
         
-        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
-        val colorPrimaryContainer = typedValue.data
-
-        theme.resolveAttribute(com.google.android.material.R.attr.colorOutline, typedValue, true)
-        val colorOutline = typedValue.data
-
-        theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
-        val colorSurface = typedValue.data
-
-        theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
-        val colorSurfaceVariant = typedValue.data
-
-        theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
-        val colorOnSurfaceVariant = typedValue.data
-
-        val adapter = TabAdapter(
-            tabs = tabList,
-            activeTabIndex = activeTabIndex,
-            colorPrimary = colorPrimary,
-            colorPrimaryContainer = colorPrimaryContainer,
-            colorOutline = colorOutline,
-            colorSurface = colorSurface,
-            colorSurfaceVariant = colorSurfaceVariant,
-            colorOnSurfaceVariant = colorOnSurfaceVariant,
-            onTabSelected = { selectedIndex ->
-                selectTab(selectedIndex)
-                dialog.dismiss()
-            },
-            onTabClosed = { closedIndex ->
-                closeTab(closedIndex)
-                rvTabs.adapter?.notifyDataSetChanged()
-                
-                // Show Clear All button and its gap spacer with fade-in animation when a tab is closed
-                if (btnClearAll.visibility != View.VISIBLE) {
-                    btnGap.visibility = View.VISIBLE
-                    btnClearAll.visibility = View.VISIBLE
-                    btnClearAll.alpha = 0f
-                    btnClearAll.animate()
-                        .alpha(1f)
-                        .setDuration(250)
-                        .start()
-                }
-
-                if (tabList.size == 1 && closedIndex == 0) {
-                    dialog.dismiss()
+        val threshold = when (setting) {
+            "day" -> 24 * 60 * 60 * 1000L
+            "week" -> 7 * 24 * 60 * 60 * 1000L
+            "month" -> 30 * 24 * 60 * 60 * 1000L
+            else -> return
+        }
+        
+        val currentTime = System.currentTimeMillis()
+        val toRemove = mutableListOf<Int>()
+        
+        tabList.forEachIndexed { index, tab ->
+            if (index != activeTabIndex) {
+                if (currentTime - tab.lastActiveTime > threshold) {
+                    toRemove.add(index)
                 }
             }
-        )
-        rvTabs.adapter = adapter
-
-        // Bind thin back button in the bottom toolbar
-        btnBack.setOnClickListener {
-            dialog.dismiss()
         }
-
-        // Bind small bottom Clear All button
-        btnClearAll.setOnClickListener {
-            MaterialAlertDialogBuilder(this@MainActivity)
-                .setTitle("Close all tabs?")
-                .setMessage("This will close all your open tabs.")
-                .setNegativeButton(getString(R.string.btn_cancel), null)
-                .setPositiveButton("Close All") { _, _ ->
-                    while (tabList.isNotEmpty()) {
-                        val tab = tabList.removeAt(0)
-                        webViewContainer.removeView(tab.webView)
-                        tab.webView.destroy()
-                    }
-                    addNewTab("about:blank")
-                    dialog.dismiss()
-                }
-                .show()
+        
+        for (i in toRemove.indices.reversed()) {
+            val index = toRemove[i]
+            val tab = tabList[index]
+            webViewContainer.removeView(tab.webView)
+            tab.webView.destroy()
+            tabList.removeAt(index)
         }
-
-        // Bind large bottom thin add FAB
-        btnAddTab.setOnClickListener {
+        
+        if (activeTabIndex >= tabList.size) {
+            activeTabIndex = tabList.size - 1
+        }
+        if (tabList.isEmpty()) {
             addNewTab("about:blank")
-            dialog.dismiss()
+        } else {
+            updateTabButtonCount()
         }
+        saveTabsState()
+    }
 
-        dialog.show()
+    private fun saveTabsState() {
+        try {
+            val jsonArray = org.json.JSONArray()
+            tabList.forEach { tab ->
+                val jsonObj = org.json.JSONObject()
+                jsonObj.put("url", tab.webView.url ?: tab.url)
+                jsonObj.put("title", tab.title)
+                jsonObj.put("lastActiveTime", tab.lastActiveTime)
+                jsonArray.put(jsonObj)
+            }
+            sharedPreferences.edit()
+                .putString("saved_tabs", jsonArray.toString())
+                .putInt("active_tab_index", activeTabIndex)
+                .apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun restoreTabsState() {
+        try {
+            val savedTabsStr = sharedPreferences.getString("saved_tabs", null)
+            val savedActiveIndex = sharedPreferences.getInt("active_tab_index", -1)
+            if (savedTabsStr != null) {
+                val jsonArray = org.json.JSONArray(savedTabsStr)
+                if (jsonArray.length() > 0) {
+                    tabList.clear()
+                    webViewContainer.removeAllViews()
+                    
+                    for (i in 0 until jsonArray.length()) {
+                        val jsonObj = jsonArray.getJSONObject(i)
+                        val url = jsonObj.getString("url")
+                        val title = jsonObj.optString("title", "New Tab")
+                        val lastActiveTime = jsonObj.optLong("lastActiveTime", System.currentTimeMillis())
+                        
+                        val webView = createNewWebView()
+                        val tab = Tab(
+                            webView = webView,
+                            url = url,
+                            title = title,
+                            lastActiveTime = lastActiveTime
+                        )
+                        tabList.add(tab)
+                        webViewContainer.addView(webView)
+                        
+                        if (url == "about:blank") {
+                            loadStartPage(tab)
+                        } else {
+                            webView.loadUrl(url)
+                        }
+                    }
+                    
+                    activeTabIndex = if (savedActiveIndex in tabList.indices) savedActiveIndex else 0
+                    selectTab(activeTabIndex)
+                    applyAutoCloseTabs()
+                    return
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        addNewTab("about:blank")
     }
 }

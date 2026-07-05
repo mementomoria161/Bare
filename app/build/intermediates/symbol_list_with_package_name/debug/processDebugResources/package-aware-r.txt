@@ -3010,6 +3010,7 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_all_thin
 drawable ic_clear_black_24
+drawable ic_clock
 drawable ic_clock_black_24dp
 drawable ic_close
 drawable ic_close_thin
@@ -3213,11 +3214,13 @@ id btnAbout
 id btnAddTab
 id btnBack
 id btnClearAll
+id btnClearAllInline
 id btnClearData
 id btnCloseTab
 id btnGap
 id btnNewTabMain
 id btnRefresh
+id btnSettingAutoClose
 id btnSettingClearData
 id btnSettingCustomSearch
 id btnSettingDesktopSite
@@ -3247,6 +3250,7 @@ id checkbox
 id checked
 id chronometer
 id circle_center
+id clearAllContainer
 id clear_text
 id clip_horizontal
 id clip_vertical
@@ -3505,6 +3509,7 @@ id right_side
 id rounded
 id row_index_key
 id rvTabs
+id rvTabsInline
 id save_non_transition_alpha
 id save_overlay_view
 id sawtooth
@@ -3571,6 +3576,7 @@ id supportScrollUp
 id swipeRefresh
 id switchDesktopMode
 id tabMode
+id tabsPanel
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
 id tag_accessibility_heading
@@ -4376,6 +4382,7 @@ style RtlOverlay_Widget_AppCompat_Search_DropDown_Text
 style RtlOverlay_Widget_AppCompat_SearchView_MagIcon
 style RtlUnderlay_Widget_AppCompat_ActionButton
 style RtlUnderlay_Widget_AppCompat_ActionButton_Overflow
+style ShapeAppearance_Bare_FAB
 style ShapeAppearance_M3_Comp_Badge_Large_Shape
 style ShapeAppearance_M3_Comp_Badge_Shape
 style ShapeAppearance_M3_Comp_BottomAppBar_Container_Shape

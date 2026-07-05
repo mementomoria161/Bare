@@ -28,4 +28,9 @@
         <item name="android:navigationBarColor">@color/window_background</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+
+    <!-- Custom FAB shape appearance overlay to unify shapes of tab overview buttons -->
+    <style name="ShapeAppearance.Bare.FAB" parent="">
+        <item name="cornerSize">28dp</item>
+    </style>
 </resources>
