@@ -2985,6 +2985,7 @@ drawable bg_address_bar
 drawable bg_button
 drawable bg_button_circle
 drawable bg_tab_pill
+drawable bg_tabs_fade_gradient
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3002,6 +3003,9 @@ drawable ic_add
 drawable ic_add_thin
 drawable ic_arrow_back_black_24
 drawable ic_arrow_back_thin
+drawable ic_bookmark
+drawable ic_bookmark_filled
+drawable ic_bookmark_manager
 drawable ic_call_answer
 drawable ic_call_answer_low
 drawable ic_call_answer_video
@@ -3015,6 +3019,8 @@ drawable ic_clock_black_24dp
 drawable ic_close
 drawable ic_close_thin
 drawable ic_desktop
+drawable ic_heart
+drawable ic_heart_filled
 drawable ic_info
 drawable ic_keyboard_black_24dp
 drawable ic_launcher
@@ -3032,7 +3038,10 @@ drawable ic_mtrl_chip_close_circle
 drawable ic_refresh
 drawable ic_search_black_24
 drawable ic_settings
+drawable ic_star
+drawable ic_star_filled
 drawable ic_tabs
+drawable ic_timelapse
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
 drawable m3_bottom_sheet_drag_handle
@@ -3203,6 +3212,7 @@ id beginOnFirstDraw
 id beginning
 id bestChoice
 id blocking
+id bookmarkRow
 id bottom
 id bottomBar
 id bottomBarCard
@@ -3220,11 +3230,17 @@ id btnCloseTab
 id btnGap
 id btnNewTabMain
 id btnRefresh
+id btnSettingAddBookmark
 id btnSettingAutoClose
+id btnSettingBookmarkManager
 id btnSettingClearData
 id btnSettingCustomSearch
 id btnSettingDesktopSite
-id btnSettingSearchEngine
+id btnSettingSearchEngineBing
+id btnSettingSearchEngineCustom
+id btnSettingSearchEngineDuckDuckGo
+id btnSettingSearchEngineEcosia
+id btnSettingSearchEngineGoogle
 id btnSettings
 id btnTabOverview
 id buttonPanel
@@ -3294,6 +3310,9 @@ id disableIntraAutoTransition
 id disablePostScroll
 id disableScroll
 id disjoint
+id downloadCompleteIcon
+id downloadNotificationCard
+id downloadProgress
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3335,6 +3354,7 @@ id floating
 id forever
 id fragment_container_view_tag
 id frost
+id fullscreenContainer
 id fullscreen_header
 id ghost_view
 id ghost_view_holder
@@ -3624,6 +3644,8 @@ id transition_position
 id transition_scene_layoutid_cache
 id transition_transform
 id triangle
+id tvAutoCloseTime
+id tvDownloadStatus
 id tvTabCount
 id tvTabTitle
 id tvTabUrl

@@ -46,23 +46,25 @@ class CapsuleProgressView @JvmOverloads constructor(
         val h = height.toFloat()
         val stroke = paint.strokeWidth
         
-        // Outlining path offset by half of the stroke width to prevent clipping at the card edges
-        val rx = dpToPx(context, 40f) - stroke / 2f
-        val ry = dpToPx(context, 40f) - stroke / 2f
+        val left = stroke / 2f
+        val top = stroke / 2f
+        val right = w - stroke / 2f
+        val bottom = h - stroke / 2f
+        val r = h / 2f - stroke / 2f
 
         val cx = w / 2f
         path.reset()
         
         // Start from top-middle point and trace clockwise
-        path.moveTo(cx, stroke / 2f)
-        path.lineTo(w - rx, stroke / 2f)
-        path.arcTo(RectF(w - 2 * rx, stroke / 2f, w, 2 * ry), -90f, 90f, false)
-        path.lineTo(w, h - ry)
-        path.arcTo(RectF(w - 2 * rx, h - 2 * ry, w, h), 0f, 90f, false)
-        path.lineTo(rx, h - stroke / 2f)
-        path.arcTo(RectF(stroke / 2f, h - 2 * ry, 2 * rx, h), 90f, 90f, false)
-        path.lineTo(stroke / 2f, ry)
-        path.arcTo(RectF(stroke / 2f, stroke / 2f, 2 * rx, 2 * ry), 180f, 90f, false)
+        path.moveTo(cx, top)
+        path.lineTo(right - r, top)
+        path.arcTo(RectF(right - 2 * r, top, right, top + 2 * r), -90f, 90f, false)
+        path.lineTo(right, bottom - r)
+        path.arcTo(RectF(right - 2 * r, bottom - 2 * r, right, bottom), 0f, 90f, false)
+        path.lineTo(left + r, bottom)
+        path.arcTo(RectF(left, bottom - 2 * r, left + 2 * r, bottom), 90f, 90f, false)
+        path.lineTo(left, top + r)
+        path.arcTo(RectF(left, top, left + 2 * r, top + 2 * r), 180f, 90f, false)
         path.close()
 
         pathMeasure.setPath(path, false)

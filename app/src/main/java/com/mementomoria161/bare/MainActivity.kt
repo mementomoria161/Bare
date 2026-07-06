@@ -2,9 +2,13 @@ package com.mementomoria161.bare
 
 import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.app.DownloadManager
+import android.widget.ImageView
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -77,7 +81,13 @@ class MainActivity : AppCompatActivity() {
     // Unprocess settings views
     private lateinit var settingsPanel: LinearLayout
     private lateinit var settingsDimOverlay: View
-    private lateinit var btnSettingSearchEngine: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingBookmarkManager: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingAddBookmark: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineGoogle: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineDuckDuckGo: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineBing: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineEcosia: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineCustom: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingCustomSearch: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingDesktopSite: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingAutoClose: com.google.android.material.button.MaterialButton
@@ -88,10 +98,57 @@ class MainActivity : AppCompatActivity() {
     private var currentStatusColor = android.graphics.Color.TRANSPARENT
 
     // Unprocess tabs views
-    private lateinit var tabsPanel: LinearLayout
-    private lateinit var clearAllContainer: FrameLayout
+    private lateinit var tabsPanel: FrameLayout
+    private lateinit var clearAllContainer: LinearLayout
     private var isTabsOpen = false
     private var isAnimatingTabs = false
+
+    private var consecutiveTabsClosed = 0
+    private var isShowingBookmarks = false
+
+    data class BookmarkItem(
+        val title: String,
+        val url: String,
+        var thumbnail: Bitmap? = null
+    )
+    private val bookmarkList = mutableListOf<BookmarkItem>()
+
+    // Fullscreen custom view support for HTML5 videos
+    private var customView: View? = null
+    private var customViewCallback: WebChromeClient.CustomViewCallback? = null
+    private lateinit var fullscreenContainer: FrameLayout
+    private var originalSystemUiVisibility = 0
+
+    // Download notification views
+    private lateinit var downloadNotificationCard: com.google.android.material.card.MaterialCardView
+    private lateinit var downloadProgress: ProgressBar
+    private lateinit var downloadCompleteIcon: ImageView
+    private lateinit var tvDownloadStatus: TextView
+
+    private val downloadReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == intent?.action) {
+                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
+                if (id != -1L) {
+                    val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    val query = DownloadManager.Query().setFilterById(id)
+                    val cursor = dm.query(query)
+                    if (cursor.moveToFirst()) {
+                        val statusIdx = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                        val titleIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)
+                        val status = if (statusIdx != -1) cursor.getInt(statusIdx) else -1
+                        val title = if (titleIdx != -1) cursor.getString(titleIdx) else "file"
+                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                            showDownloadNotification("Download completed: $title", isLoading = false)
+                        } else {
+                            showDownloadNotification("Download failed: $title", isLoading = false, isFailed = true)
+                        }
+                    }
+                    cursor.close()
+                }
+            }
+        }
+    }
 
     // SharedPreferences for settings
     private lateinit var sharedPreferences: SharedPreferences
@@ -137,13 +194,35 @@ class MainActivity : AppCompatActivity() {
         // Initialize settings overlay views
         settingsPanel = findViewById(R.id.settingsPanel)
         settingsDimOverlay = findViewById(R.id.settingsDimOverlay)
-        btnSettingSearchEngine = findViewById(R.id.btnSettingSearchEngine)
+        btnSettingBookmarkManager = findViewById(R.id.btnSettingBookmarkManager)
+        btnSettingAddBookmark = findViewById(R.id.btnSettingAddBookmark)
+        btnSettingSearchEngineGoogle = findViewById(R.id.btnSettingSearchEngineGoogle)
+        btnSettingSearchEngineDuckDuckGo = findViewById(R.id.btnSettingSearchEngineDuckDuckGo)
+        btnSettingSearchEngineBing = findViewById(R.id.btnSettingSearchEngineBing)
+        btnSettingSearchEngineEcosia = findViewById(R.id.btnSettingSearchEngineEcosia)
+        btnSettingSearchEngineCustom = findViewById(R.id.btnSettingSearchEngineCustom)
         btnSettingCustomSearch = findViewById(R.id.btnSettingCustomSearch)
         btnSettingDesktopSite = findViewById(R.id.btnSettingDesktopSite)
         btnSettingAutoClose = findViewById(R.id.btnSettingAutoClose)
         btnSettingClearData = findViewById(R.id.btnSettingClearData)
         tabsPanel = findViewById(R.id.tabsPanel)
         clearAllContainer = findViewById(R.id.clearAllContainer)
+        fullscreenContainer = findViewById(R.id.fullscreenContainer)
+
+        restoreBookmarks()
+
+        // Initialize download notification views
+        downloadNotificationCard = findViewById(R.id.downloadNotificationCard)
+        downloadProgress = findViewById(R.id.downloadProgress)
+        downloadCompleteIcon = findViewById(R.id.downloadCompleteIcon)
+        tvDownloadStatus = findViewById(R.id.tvDownloadStatus)
+
+        // Register download complete broadcast receiver
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(downloadReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        }
 
         setupEdgeToEdgeInsets()
         setupAddressBarBehavior()
@@ -152,6 +231,9 @@ class MainActivity : AppCompatActivity() {
 
         // Restore tabs state or create new one
         restoreTabsState()
+
+        // Handle external link intents if launched from another app
+        handleIntent(intent)
     }
 
     private fun setupEdgeToEdgeInsets() {
@@ -178,6 +260,15 @@ class MainActivity : AppCompatActivity() {
 
         // Apply dynamic top padding to rvTabsInline to clear the status bar but allow scrolling under it
         val rvTabsInline = findViewById<com.mementomoria161.bare.FadingRecyclerView>(R.id.rvTabsInline)
+        rvTabsInline.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                updateTabPillsScaleOnScroll(recyclerView)
+            }
+        })
+        rvTabsInline.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            updateTabPillsScaleOnScroll(rvTabsInline)
+        }
         ViewCompat.setOnApplyWindowInsetsListener(rvTabsInline) { view, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(
@@ -298,8 +389,37 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        btnSettingSearchEngine.setOnClickListener {
-            cycleSearchEngineSetting()
+        btnSettingBookmarkManager.setOnClickListener {
+            showBookmarksOverview()
+        }
+
+        btnSettingAddBookmark.setOnClickListener {
+            addCurrentPageToBookmarks()
+        }
+
+        btnSettingSearchEngineGoogle.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "google").apply()
+            updateSettingsButtonsUI()
+        }
+
+        btnSettingSearchEngineDuckDuckGo.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "duckduckgo").apply()
+            updateSettingsButtonsUI()
+        }
+
+        btnSettingSearchEngineBing.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "bing").apply()
+            updateSettingsButtonsUI()
+        }
+
+        btnSettingSearchEngineEcosia.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "ecosia").apply()
+            updateSettingsButtonsUI()
+        }
+
+        btnSettingSearchEngineCustom.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "custom").apply()
+            updateSettingsButtonsUI()
         }
 
         btnSettingCustomSearch.setOnClickListener {
@@ -323,6 +443,10 @@ class MainActivity : AppCompatActivity() {
         // Modern back button navigation using OnBackPressedCallback
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (customView != null) {
+                    hideCustomView()
+                    return
+                }
                 if (isSettingsOpen) {
                     toggleSettingsMenu()
                     return
@@ -394,8 +518,10 @@ class MainActivity : AppCompatActivity() {
         isAnimatingSettings = true
         isSettingsOpen = !isSettingsOpen
 
+        val bookmarkRow = findViewById<View>(R.id.bookmarkRow)
         val toggles = listOf(
-            btnSettingSearchEngine.parent as View, // Grouped Search Engine Row container
+            bookmarkRow,
+            btnSettingSearchEngineGoogle.parent.parent as View, // Grouped Search Engine Row container
             btnSettingDesktopSite,
             btnSettingAutoClose,
             btnSettingClearData
@@ -506,23 +632,31 @@ class MainActivity : AppCompatActivity() {
         val btnClearAllInline = findViewById<Button>(R.id.btnClearAllInline)
 
         if (isTabsOpen) {
-            closeActiveTabIfBlank()
-            
-            if (tabList.size == 1) {
-                val activeTab = tabList[0]
-                val isBlank = activeTab.url == "about:blank" || activeTab.url.startsWith("file:///android_asset/") || activeTab.webView.url == null || activeTab.webView.url == "about:blank" || activeTab.webView.url!!.startsWith("file:///android_asset/")
-                if (isBlank) {
-                    val tabToRemove = tabList[0]
-                    webViewContainer.removeView(tabToRemove.webView)
-                    tabToRemove.webView.destroy()
-                    tabList.clear()
-                    activeTabIndex = -1
+            if (!isShowingBookmarks) {
+                closeActiveTabIfBlank()
+                
+                if (tabList.size == 1) {
+                    val activeTab = tabList[0]
+                    val isBlank = activeTab.url == "about:blank" || activeTab.url.startsWith("file:///android_asset/") || activeTab.webView.url == null || activeTab.webView.url == "about:blank" || activeTab.webView.url!!.startsWith("file:///android_asset/")
+                    if (isBlank) {
+                        val tabToRemove = tabList[0]
+                        webViewContainer.removeView(tabToRemove.webView)
+                        tabToRemove.webView.destroy()
+                        tabList.clear()
+                        activeTabIndex = -1
+                    }
                 }
             }
 
-            btnClearAllInline.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
-            clearAllContainer.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
+            val showClearAll = !isShowingBookmarks && consecutiveTabsClosed >= 2 && tabList.isNotEmpty()
+            btnClearAllInline.visibility = if (showClearAll) View.VISIBLE else View.GONE
+            clearAllContainer.visibility = if (showClearAll) View.VISIBLE else View.GONE
+            rvTabsInline.alpha = 0f // Hide recycler view so children don't flash before animation setup
             setupInlineTabAdapter(rvTabsInline, btnClearAllInline)
+
+            if (tabList.isNotEmpty()) {
+                rvTabsInline.scrollToPosition(tabList.lastIndex)
+            }
 
             // Dim status bar and overlay
             val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
@@ -557,13 +691,15 @@ class MainActivity : AppCompatActivity() {
                     .scaleY(1f)
                     .translationY(0f)
                     .setDuration(280)
+                    .setStartDelay(0L)
                     .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
                     .start()
             }
 
             // Animate visible RecyclerView tab cards in a staggered pop-up overshoot sequence
             rvTabsInline.post {
-                for (i in 0 until rvTabsInline.childCount) {
+                val childCount = rvTabsInline.childCount
+                for (i in 0 until childCount) {
                     val child = rvTabsInline.getChildAt(i)
                     child.animate().cancel()
                     child.alpha = 0f
@@ -575,15 +711,25 @@ class MainActivity : AppCompatActivity() {
                 // RecyclerView layout pass complete; show recycler view now that all children are pre-hidden/scaled
                 rvTabsInline.alpha = 1f
 
-                for (i in 0 until rvTabsInline.childCount) {
+                for (i in 0 until childCount) {
                     val child = rvTabsInline.getChildAt(i)
+                    val childBottom = child.bottom + rvTabsInline.top
+                    val threshold = rvTabsInline.height - rvTabsInline.paddingBottom
+                    val targetScale = if (threshold > 0 && childBottom > threshold) {
+                        val scrolledPast = childBottom - threshold
+                        val range = child.height.toFloat()
+                        if (range > 0f) (1.0f - (scrolledPast / range)).coerceIn(0.0f, 1.0f) else 1.0f
+                    } else {
+                        1.0f
+                    }
+
                     child.animate()
-                        .alpha(1f)
-                        .scaleX(1f)
-                        .scaleY(1f)
+                        .alpha(targetScale)
+                        .scaleX(targetScale)
+                        .scaleY(targetScale)
                         .translationY(0f)
                         .setDuration(280)
-                        .setStartDelay(120L + i * 60L)
+                        .setStartDelay(120L + (childCount - 1 - i) * 60L)
                         .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
                         .start()
                 }
@@ -649,6 +795,7 @@ class MainActivity : AppCompatActivity() {
                     override fun onAnimationEnd(animation: android.animation.Animator) {
                         tabsPanel.visibility = View.GONE
                         isAnimatingTabs = false
+                        isShowingBookmarks = false
                         onFinished?.invoke()
                         if (tabList.isEmpty()) {
                             addNewTab("about:blank")
@@ -660,7 +807,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupInlineTabAdapter(rvTabs: androidx.recyclerview.widget.RecyclerView, btnClearAll: Button) {
-        rvTabs.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
+        rvTabs.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this).apply {
+            stackFromEnd = true
+        }
         val typedValue = TypedValue()
         theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
         val colorPrimary = typedValue.data
@@ -680,51 +829,112 @@ class MainActivity : AppCompatActivity() {
         theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
         val colorOnSurfaceVariant = typedValue.data
 
+        val items = if (isShowingBookmarks) {
+            bookmarkList.map { bookmark ->
+                TabOverviewItem(
+                    title = bookmark.title,
+                    url = bookmark.url,
+                    thumbnail = bookmark.thumbnail,
+                    lastActiveTime = null,
+                    isBookmark = true
+                )
+            }
+        } else {
+            tabList.map { tab ->
+                TabOverviewItem(
+                    title = tab.title,
+                    url = tab.url,
+                    thumbnail = tab.thumbnail,
+                    lastActiveTime = tab.lastActiveTime,
+                    isBookmark = false
+                )
+            }
+        }
+
         val adapter = TabAdapter(
-            tabs = tabList,
-            activeTabIndex = activeTabIndex,
+            items = items,
+            activeTabIndex = if (isShowingBookmarks) -1 else activeTabIndex,
             colorPrimary = colorPrimary,
             colorPrimaryContainer = colorPrimaryContainer,
             colorOutline = colorOutline,
             colorSurface = colorSurface,
             colorSurfaceVariant = colorSurfaceVariant,
             colorOnSurfaceVariant = colorOnSurfaceVariant,
-            onTabSelected = { selectedIndex ->
-                selectTab(selectedIndex)
-                toggleTabsOverview()
-            },
-            onTabClosed = { closedIndex ->
-                closeTab(closedIndex, autoCreate = false)
-                rvTabs.adapter?.notifyDataSetChanged()
-                
-                btnClearAll.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
-                clearAllContainer.visibility = if (tabList.isNotEmpty()) View.VISIBLE else View.GONE
-                if (tabList.isEmpty()) {
+            autoCloseSetting = sharedPreferences.getString("auto_close_tabs", "never") ?: "never",
+            isBookmarkMode = isShowingBookmarks,
+            onItemSelected = { selectedIndex ->
+                if (isShowingBookmarks) {
+                    val bookmark = bookmarkList[selectedIndex]
+                    addNewTab(bookmark.url)
                     toggleTabsOverview()
+                } else {
+                    selectTab(selectedIndex)
+                    toggleTabsOverview()
+                }
+            },
+            onItemClosed = { closedIndex ->
+                if (isShowingBookmarks) {
+                    bookmarkList.removeAt(closedIndex)
+                    saveBookmarks()
+                    setupInlineTabAdapter(rvTabs, btnClearAll)
+                } else {
+                    closeTab(closedIndex, autoCreate = false)
+                    consecutiveTabsClosed++
+                    setupInlineTabAdapter(rvTabs, btnClearAll)
+                    
+                    val showClearAll = !isShowingBookmarks && consecutiveTabsClosed >= 2 && tabList.isNotEmpty()
+                    btnClearAll.visibility = if (showClearAll) View.VISIBLE else View.GONE
+                    clearAllContainer.visibility = if (showClearAll) View.VISIBLE else View.GONE
+                    if (tabList.isEmpty()) {
+                        toggleTabsOverview()
+                    }
                 }
             }
         )
+        val savedScrollState = rvTabs.layoutManager?.onSaveInstanceState()
         rvTabs.adapter = adapter
+        rvTabs.layoutManager?.onRestoreInstanceState(savedScrollState)
     }
 
     private fun updateSettingsButtonsUI() {
-        // 1. Search Engine label and logo icon (formatted without a colon)
+        // 1. Search Engine Row highlights
         val engine = sharedPreferences.getString("search_engine", "google") ?: "google"
-        val engineLabel = if (engine == "custom") {
-            sharedPreferences.getString("custom_search_name", "Custom") ?: "Custom"
-        } else {
-            engine.replaceFirstChar { it.uppercase() }
-        }
-        btnSettingSearchEngine.text = "Search Engine $engineLabel"
         
-        val iconRes = when (engine) {
-            "google" -> R.drawable.ic_logo_google
-            "duckduckgo" -> R.drawable.ic_logo_duckduckgo
-            "bing" -> R.drawable.ic_logo_bing
-            "ecosia" -> R.drawable.ic_logo_ecosia
-            else -> R.drawable.ic_add
+        fun highlightSearchButton(button: com.google.android.material.button.MaterialButton, isActive: Boolean) {
+            val typedVal = TypedValue()
+            if (isActive) {
+                theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedVal, true)
+                button.backgroundTintList = android.content.res.ColorStateList.valueOf(typedVal.data)
+                theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedVal, true)
+                button.setTextColor(typedVal.data)
+                button.iconTint = android.content.res.ColorStateList.valueOf(typedVal.data)
+            } else {
+                theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedVal, true)
+                button.backgroundTintList = android.content.res.ColorStateList.valueOf(typedVal.data)
+                theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedVal, true)
+                button.setTextColor(typedVal.data)
+                button.iconTint = android.content.res.ColorStateList.valueOf(typedVal.data)
+            }
         }
-        btnSettingSearchEngine.setIconResource(iconRes)
+
+        highlightSearchButton(btnSettingSearchEngineGoogle, engine == "google")
+        highlightSearchButton(btnSettingSearchEngineDuckDuckGo, engine == "duckduckgo")
+        highlightSearchButton(btnSettingSearchEngineBing, engine == "bing")
+        highlightSearchButton(btnSettingSearchEngineEcosia, engine == "ecosia")
+
+        val customPrefix = sharedPreferences.getString("custom_search_prefix", "") ?: ""
+        if (customPrefix.isNotEmpty()) {
+            btnSettingSearchEngineCustom.visibility = View.VISIBLE
+            val customName = sharedPreferences.getString("custom_search_name", "Custom") ?: "Custom"
+            btnSettingSearchEngineCustom.text = customName
+            highlightSearchButton(btnSettingSearchEngineCustom, engine == "custom")
+        } else {
+            btnSettingSearchEngineCustom.visibility = View.GONE
+            if (engine == "custom") {
+                sharedPreferences.edit().putString("search_engine", "google").apply()
+                highlightSearchButton(btnSettingSearchEngineGoogle, true)
+            }
+        }
 
         // 2. Desktop Mode color indicator formatting (matching Unprocess style)
         val isDesktop = sharedPreferences.getBoolean("desktop_mode", false)
@@ -756,7 +966,7 @@ class MainActivity : AppCompatActivity() {
             "month" -> "1 Month"
             else -> "Never"
         }
-        btnSettingAutoClose.text = "Auto-Close: $autoCloseLabel"
+        btnSettingAutoClose.text = "Auto-Close Tabs: $autoCloseLabel"
         
         if (autoClose != "never") {
             theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
@@ -771,20 +981,34 @@ class MainActivity : AppCompatActivity() {
             btnSettingAutoClose.setTextColor(typedValue.data)
             btnSettingAutoClose.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
         }
+
+        // 4. Bookmark Add button filled state and highlighting
+        val exists = if (activeTabIndex in tabList.indices) {
+            val activeTab = tabList[activeTabIndex]
+            val url = activeTab.webView.url ?: activeTab.url
+            bookmarkList.any { it.url == url }
+        } else {
+            false
+        }
+
+        if (exists) {
+            btnSettingAddBookmark.setIconResource(R.drawable.ic_heart_filled)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
+            btnSettingAddBookmark.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)
+            btnSettingAddBookmark.setTextColor(typedValue.data)
+            btnSettingAddBookmark.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+        } else {
+            btnSettingAddBookmark.setIconResource(R.drawable.ic_heart)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
+            btnSettingAddBookmark.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
+            btnSettingAddBookmark.setTextColor(typedValue.data)
+            btnSettingAddBookmark.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+        }
     }
 
-    private fun cycleSearchEngineSetting() {
-        val engines = listOf("google", "duckduckgo", "bing", "ecosia")
-        val current = sharedPreferences.getString("search_engine", "google") ?: "google"
-        
-        // Only cycle default search engines. Custom search is toggled via the "+" button.
-        val idx = engines.indexOf(current)
-        val nextIdx = if (idx == -1) 0 else (idx + 1) % engines.size
-        val nextEngine = engines[nextIdx]
 
-        sharedPreferences.edit().putString("search_engine", nextEngine).apply()
-        updateSettingsButtonsUI()
-    }
 
     private fun toggleDesktopSiteSetting() {
         val isDesktop = sharedPreferences.getBoolean("desktop_mode", false)
@@ -1031,6 +1255,7 @@ class MainActivity : AppCompatActivity() {
 
     // Tab Management
     private fun addNewTab(url: String = "about:blank") {
+        consecutiveTabsClosed = 0
         closeActiveTabIfBlank()
         if (isTabsOpen) {
             toggleTabsOverview()
@@ -1058,6 +1283,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(index: Int) {
+        consecutiveTabsClosed = 0
         if (index !in tabList.indices) return
         val targetTab = tabList[index]
         
@@ -1412,9 +1638,106 @@ class MainActivity : AppCompatActivity() {
                     tab.title = if (tab.url == "about:blank") "New Tab" else (title ?: "New Tab")
                 }
             }
+
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                if (customView != null) {
+                    onHideCustomView()
+                    return
+                }
+                customView = view
+                customViewCallback = callback
+                originalSystemUiVisibility = window.decorView.systemUiVisibility
+
+                // Hide system UI
+                window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                )
+
+                fullscreenContainer.addView(view)
+                fullscreenContainer.visibility = View.VISIBLE
+                
+                webViewContainer.visibility = View.GONE
+                bottomBarCard.visibility = View.GONE
+            }
+
+            override fun onHideCustomView() {
+                hideCustomView()
+            }
+        }
+
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q &&
+                androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                
+                pendingDownloadUrl = url
+                pendingDownloadUserAgent = userAgent
+                pendingDownloadContentDisposition = contentDisposition
+                pendingDownloadMimeType = mimetype
+                
+                androidx.core.app.ActivityCompat.requestPermissions(
+                    this@MainActivity,
+                    arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    1001
+                )
+            } else {
+                startDownload(url, userAgent, contentDisposition, mimetype)
+            }
         }
 
         return webView
+    }
+
+    private var pendingDownloadUrl: String? = null
+    private var pendingDownloadUserAgent: String? = null
+    private var pendingDownloadContentDisposition: String? = null
+    private var pendingDownloadMimeType: String? = null
+
+    private fun startDownload(url: String, userAgent: String, contentDisposition: String, mimetype: String) {
+        try {
+            val filename = android.webkit.URLUtil.guessFileName(url, contentDisposition, mimetype)
+            val request = android.app.DownloadManager.Request(Uri.parse(url)).apply {
+                setMimeType(mimetype)
+                val cookies = android.webkit.CookieManager.getInstance().getCookie(url)
+                addRequestHeader("cookie", cookies)
+                addRequestHeader("User-Agent", userAgent)
+                setDescription("Downloading file...")
+                setTitle(filename)
+                setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
+                setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, filename)
+            }
+            val dm = getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+            dm.enqueue(request)
+            showDownloadNotification("Downloading $filename...", isLoading = true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001) {
+            if (grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                val url = pendingDownloadUrl
+                val ua = pendingDownloadUserAgent
+                val cd = pendingDownloadContentDisposition
+                val mime = pendingDownloadMimeType
+                if (url != null && ua != null && cd != null && mime != null) {
+                    startDownload(url, ua, cd, mime)
+                }
+            } else {
+                Toast.makeText(this, "Storage permission required to download files", Toast.LENGTH_SHORT).show()
+            }
+            pendingDownloadUrl = null
+            pendingDownloadUserAgent = null
+            pendingDownloadContentDisposition = null
+            pendingDownloadMimeType = null
+        }
     }
 
     private fun findTabIndexForWebView(view: WebView?): Int {
@@ -1661,5 +1984,236 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         addNewTab("about:blank")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            unregisterReceiver(downloadReceiver)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private var dismissNotificationRunnable: Runnable? = null
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    private fun showDownloadNotification(text: String, isLoading: Boolean, isFailed: Boolean = false) {
+        mainHandler.removeCallbacksAndMessages(null)
+        
+        tvDownloadStatus.text = text
+        if (isLoading) {
+            downloadProgress.visibility = View.VISIBLE
+            downloadCompleteIcon.visibility = View.GONE
+        } else {
+            downloadProgress.visibility = View.GONE
+            downloadCompleteIcon.visibility = View.VISIBLE
+            if (isFailed) {
+                downloadCompleteIcon.setImageResource(R.drawable.ic_close)
+                downloadCompleteIcon.imageTintList = android.content.res.ColorStateList.valueOf(
+                    getThemeColor(com.google.android.material.R.attr.colorError)
+                )
+            } else {
+                downloadCompleteIcon.setImageResource(R.drawable.ic_launcher)
+                downloadCompleteIcon.imageTintList = android.content.res.ColorStateList.valueOf(
+                    getThemeColor(com.google.android.material.R.attr.colorPrimary)
+                )
+            }
+        }
+        
+        if (downloadNotificationCard.visibility != View.VISIBLE) {
+            downloadNotificationCard.visibility = View.VISIBLE
+            downloadNotificationCard.alpha = 0f
+            downloadNotificationCard.translationY = dpToPx(this, 20).toFloat()
+            downloadNotificationCard.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(250)
+                .setInterpolator(android.view.animation.DecelerateInterpolator())
+                .start()
+        } else {
+            downloadNotificationCard.alpha = 1f
+            downloadNotificationCard.translationY = 0f
+        }
+        
+        if (!isLoading) {
+            dismissNotificationRunnable = Runnable {
+                downloadNotificationCard.animate()
+                    .alpha(0f)
+                    .translationY(dpToPx(this@MainActivity, 20).toFloat())
+                    .setDuration(200)
+                    .setInterpolator(android.view.animation.AccelerateInterpolator())
+                    .withEndAction {
+                        downloadNotificationCard.visibility = View.GONE
+                    }
+                    .start()
+            }
+            mainHandler.postDelayed(dismissNotificationRunnable!!, 4000)
+        }
+    }
+
+    private fun getThemeColor(attrId: Int): Int {
+        val typedValue = TypedValue()
+        theme.resolveAttribute(attrId, typedValue, true)
+        return typedValue.data
+    }
+
+    private fun updateTabPillsScaleOnScroll(recyclerView: RecyclerView) {
+        val threshold = recyclerView.height - recyclerView.paddingBottom
+        if (threshold <= 0) return
+        
+        val childCount = recyclerView.childCount
+        for (i in 0 until childCount) {
+            val child = recyclerView.getChildAt(i)
+            val childBottom = child.bottom + recyclerView.top
+            
+            if (childBottom <= threshold) {
+                child.scaleX = 1.0f
+                child.scaleY = 1.0f
+                child.alpha = 1.0f
+            } else {
+                val scrolledPast = childBottom - threshold
+                val range = child.height.toFloat()
+                if (range > 0f) {
+                    val progress = (scrolledPast / range).coerceIn(0.0f, 1.0f)
+                    val scale = 1.0f - progress
+                    child.scaleX = scale
+                    child.scaleY = scale
+                    child.alpha = scale
+                }
+            }
+        }
+    }
+
+    private fun showBookmarksOverview() {
+        if (isSettingsOpen) {
+            toggleSettingsMenu(onFinished = {
+                isShowingBookmarks = true
+                toggleTabsOverview()
+            })
+        } else {
+            isShowingBookmarks = true
+            toggleTabsOverview()
+        }
+    }
+
+    private fun addCurrentPageToBookmarks() {
+        if (activeTabIndex in tabList.indices) {
+            val activeTab = tabList[activeTabIndex]
+            val url = activeTab.webView.url ?: activeTab.url
+            val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
+            if (isBlank) {
+                Toast.makeText(this, "Startseite kann nicht gespeichert werden", Toast.LENGTH_SHORT).show()
+            } else {
+                val exists = bookmarkList.any { it.url == url }
+                if (exists) {
+                    bookmarkList.removeAll { it.url == url }
+                    saveBookmarks()
+                    updateSettingsButtonsUI()
+                    Toast.makeText(this, "Lesezeichen entfernt", Toast.LENGTH_SHORT).show()
+                } else {
+                    val title = activeTab.title
+                    val thumbnail = activeTab.thumbnail
+                    bookmarkList.add(BookmarkItem(title, url, thumbnail))
+                    saveBookmarks()
+                    updateSettingsButtonsUI()
+                    Toast.makeText(this, "Lesezeichen gespeichert", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(this, "Kein aktiver Tab zum Speichern", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        val outputStream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        val byteArray = outputStream.toByteArray()
+        return android.util.Base64.encodeToString(byteArray, android.util.Base64.NO_WRAP)
+    }
+
+    private fun base64ToBitmap(base64Str: String): Bitmap? {
+        return try {
+            val decodedBytes = android.util.Base64.decode(base64Str, android.util.Base64.NO_WRAP)
+            android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun saveBookmarks() {
+        try {
+            val jsonArray = org.json.JSONArray()
+            bookmarkList.forEach { bookmark ->
+                val jsonObj = org.json.JSONObject()
+                jsonObj.put("title", bookmark.title)
+                jsonObj.put("url", bookmark.url)
+                bookmark.thumbnail?.let { bmp ->
+                    jsonObj.put("thumbnail", bitmapToBase64(bmp))
+                }
+                jsonArray.put(jsonObj)
+            }
+            sharedPreferences.edit()
+                .putString("saved_bookmarks", jsonArray.toString())
+                .apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun restoreBookmarks() {
+        try {
+            val savedBookmarksStr = sharedPreferences.getString("saved_bookmarks", null)
+            if (savedBookmarksStr != null) {
+                val jsonArray = org.json.JSONArray(savedBookmarksStr)
+                bookmarkList.clear()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObj = jsonArray.getJSONObject(i)
+                    val title = jsonObj.getString("title")
+                    val url = jsonObj.getString("url")
+                    val thumbnailBase64 = if (jsonObj.has("thumbnail")) jsonObj.getString("thumbnail") else null
+                    val thumbnail = if (!thumbnailBase64.isNullOrEmpty()) base64ToBitmap(thumbnailBase64) else null
+                    bookmarkList.add(BookmarkItem(title, url, thumbnail))
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun hideCustomView() {
+        if (customView == null) return
+        fullscreenContainer.removeView(customView)
+        fullscreenContainer.visibility = View.GONE
+        customView = null
+        customViewCallback?.onCustomViewHidden()
+        customViewCallback = null
+
+        // Restore system UI visibility
+        window.decorView.systemUiVisibility = originalSystemUiVisibility
+        val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.isAppearanceLightStatusBars = !isColorDark(currentStatusColor)
+
+        // Restore other main layout elements
+        webViewContainer.visibility = View.VISIBLE
+        bottomBarCard.visibility = View.VISIBLE
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        if (intent == null) return
+        val action = intent.action
+        val data = intent.dataString
+        if (Intent.ACTION_VIEW == action && data != null) {
+            addNewTab(data)
+            if (isTabsOpen) {
+                toggleTabsOverview()
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
     }
 }

@@ -13,7 +13,7 @@ import com.google.android.material.card.MaterialCardView
 import java.net.URI
 
 class TabAdapter(
-    private val tabs: List<MainActivity.Tab>,
+    private val items: List<TabOverviewItem>,
     private val activeTabIndex: Int,
     private val colorPrimary: Int,
     private val colorPrimaryContainer: Int,
@@ -21,8 +21,10 @@ class TabAdapter(
     private val colorSurface: Int,
     private val colorSurfaceVariant: Int,
     private val colorOnSurfaceVariant: Int,
-    private val onTabSelected: (Int) -> Unit,
-    private val onTabClosed: (Int) -> Unit
+    private val autoCloseSetting: String,
+    private val isBookmarkMode: Boolean,
+    private val onItemSelected: (Int) -> Unit,
+    private val onItemClosed: (Int) -> Unit
 ) : RecyclerView.Adapter<TabAdapter.TabViewHolder>() {
 
     class TabViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -30,6 +32,7 @@ class TabAdapter(
         val ivThumbnail: ImageView = itemView.findViewById(R.id.ivTabThumbnail)
         val tvTitle: TextView = itemView.findViewById(R.id.tvTabTitle)
         val tvUrl: TextView = itemView.findViewById(R.id.tvTabUrl)
+        val tvAutoCloseTime: TextView = itemView.findViewById(R.id.tvAutoCloseTime)
         val btnClose: ImageButton = itemView.findViewById(R.id.btnCloseTab)
     }
 
@@ -39,16 +42,57 @@ class TabAdapter(
     }
 
     override fun onBindViewHolder(holder: TabViewHolder, position: Int) {
-        val tab = tabs[position]
-        holder.tvTitle.text = if (tab.title.isEmpty() || tab.title == "about:blank") "New Tab" else tab.title
-        holder.tvUrl.text = getSimplifiedUrl(tab.url)
+        val item = items[position]
+        holder.tvTitle.text = if (item.title.isEmpty() || item.title == "about:blank") "New Tab" else item.title
+        holder.tvUrl.text = getSimplifiedUrl(item.url)
+
+        if (isBookmarkMode || autoCloseSetting == "never" || item.lastActiveTime == null) {
+            holder.tvAutoCloseTime.visibility = View.GONE
+        } else {
+            val threshold = when (autoCloseSetting) {
+                "day" -> 24 * 60 * 60 * 1000L
+                "week" -> 7 * 24 * 60 * 60 * 1000L
+                "month" -> 30 * 24 * 60 * 60 * 1000L
+                else -> 0L
+            }
+            if (threshold > 0) {
+                val elapsed = System.currentTimeMillis() - item.lastActiveTime
+                val remaining = threshold - elapsed
+                val closesInText = if (remaining <= 0) {
+                    "Closing soon"
+                } else {
+                    val oneMinute = 60 * 1000L
+                    val oneHour = 60 * 60 * 1000L
+                    val oneDay = 24 * 60 * 60 * 1000L
+                    
+                    if (remaining >= oneDay) {
+                        val days = (remaining + oneDay / 2) / oneDay
+                        "Closes in ${days}d"
+                    } else if (remaining >= oneHour) {
+                        val hours = (remaining + oneHour / 2) / oneHour
+                        if (hours >= 24) "Closes in 1d" else "Closes in ${hours}h"
+                    } else {
+                        val minutes = (remaining + oneMinute / 2) / oneMinute
+                        if (minutes <= 0) "Closes in <1m" else "Closes in ${minutes}m"
+                    }
+                }
+                holder.tvAutoCloseTime.text = closesInText
+                holder.tvAutoCloseTime.visibility = View.VISIBLE
+            } else {
+                holder.tvAutoCloseTime.visibility = View.GONE
+            }
+        }
 
         // Bind Webpage Screenshot Thumbnail or default launcher icon
-        if (tab.thumbnail != null) {
-            holder.ivThumbnail.setImageBitmap(tab.thumbnail)
+        if (item.thumbnail != null) {
+            holder.ivThumbnail.setImageBitmap(item.thumbnail)
             holder.ivThumbnail.imageTintList = null
         } else {
-            holder.ivThumbnail.setImageResource(R.drawable.ic_launcher)
+            if (isBookmarkMode) {
+                holder.ivThumbnail.setImageResource(R.drawable.ic_heart)
+            } else {
+                holder.ivThumbnail.setImageResource(R.drawable.ic_launcher)
+            }
             holder.ivThumbnail.imageTintList = android.content.res.ColorStateList.valueOf(colorOnSurfaceVariant)
         }
         
@@ -61,16 +105,25 @@ class TabAdapter(
             holder.cardView.setCardBackgroundColor(colorSurfaceVariant)
         }
 
+        // Set close/trash icon
+        if (isBookmarkMode) {
+            holder.btnClose.setImageResource(R.drawable.ic_clear_all_thin)
+            holder.btnClose.contentDescription = "Delete bookmark"
+        } else {
+            holder.btnClose.setImageResource(R.drawable.ic_close_thin)
+            holder.btnClose.contentDescription = "Close tab"
+        }
+
         holder.cardView.setOnClickListener {
-            onTabSelected(position)
+            onItemSelected(position)
         }
 
         holder.btnClose.setOnClickListener {
-            onTabClosed(position)
+            onItemClosed(position)
         }
     }
 
-    override fun getItemCount(): Int = tabs.size
+    override fun getItemCount(): Int = items.size
 
     private fun dpToPx(context: Context, dp: Int): Int {
         val density = context.resources.displayMetrics.density
