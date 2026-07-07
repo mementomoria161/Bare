@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#D0BCFF</color>
+    <color name="address_bar_bg">#2C2C2C</color>
+    <color name="border">#333333</color>
+    <color name="divider">#2C2C2C</color>
+    <color name="primary">#D0BCFF</color>
+    <color name="primary_dark">#B5A3DF</color>
+    <color name="primary_light">#2A233D</color>
+    <color name="ripple">#20FFFFFF</color>
+    <color name="surface">#242424</color>
+    <color name="text_primary">#F9FAFB</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="window_background">#1A1A1A</color>
+    <string name="about_bare">About Bare</string>
+    <string name="about_message">Bare is a minimalist, fast web browser for Android, based on Android WebView.\n\nVersion 1.1\nGoogle DeepMind pair-programmed project.</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_tabs">Tabs</string>
+    <string name="app_name">Bare</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_clear">Clear</string>
+    <string name="btn_ok">OK</string>
+    <string name="btn_save">Save</string>
+    <string name="clear_data">Clear Browser Data</string>
+    <string name="clear_data_confirm_message">This will permanently clear history, cookies, and cache.</string>
+    <string name="clear_data_confirm_title">Clear browser data?</string>
+    <string name="clear_data_success">Browser data cleared</string>
+    <string name="close_tab">Close Tab</string>
+    <string name="custom_engine_dialog_title">Add Custom Search Engine</string>
+    <string name="custom_engine_invalid">Please enter a valid URL prefix starting with http/https</string>
+    <string name="custom_engine_name_hint">Engine Name (e.g. Startpage)</string>
+    <string name="custom_engine_url_hint">Search URL Prefix (e.g. https://domain.com/?q=)</string>
+    <string name="new_tab">New Tab</string>
+    <string name="placeholder_search">Search or enter URL</string>
+    <string name="search_engine_setting">Default Search Engine</string>
+    <string name="search_prefix_bing">https://www.bing.com/search?q=</string>
+    <string name="search_prefix_duckduckgo">https://duckduckgo.com/?q=</string>
+    <string name="search_prefix_ecosia">https://www.ecosia.org/search?q=</string>
+    <string name="search_prefix_google">https://www.google.com/search?q=</string>
+    <string name="search_prefix_qwant">https://www.qwant.com/?q=</string>
+    <string name="toast_error_app_link">App link could not be opened</string>
+    <style name="ShapeAppearance.Bare.FAB" parent="">
+        <item name="cornerSize">28dp</item>
+    </style>
+    <style name="Theme.Bare" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        
+        
+        <item name="android:statusBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+    <style name="Theme.Bare.FullscreenDialog" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:statusBarColor">@color/window_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/window_background</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

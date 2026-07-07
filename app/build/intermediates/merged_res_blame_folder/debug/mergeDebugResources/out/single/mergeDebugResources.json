@@ -1,158 +1,154 @@
 [
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_bg_address_bar.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\bg_address_bar.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_logo_google.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_logo_google.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_close.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_close.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_desktop.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_desktop.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\layout_dialog_tabs.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\layout\\dialog_tabs.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_close.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_close.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_logo_bing.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_logo_bing.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_bookmark_filled.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_bookmark_filled.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_bookmark.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_bookmark.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_logo_duckduckgo.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_logo_duckduckgo.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_add.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_add.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_heart.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_heart.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_bookmark_manager.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_bookmark_manager.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_add.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_add.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_heart_filled.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_heart_filled.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_launcher.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_launcher.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_search_gear.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_search_gear.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_download.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_download.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\layout_item_tab.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\layout\\item_tab.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_clock.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_clock.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_refresh.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_refresh.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_logo_ecosia.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_logo_ecosia.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_close_thin.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_close_thin.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_star_filled.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_star_filled.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_star.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_star.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_bookmark_manager.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_bookmark_manager.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_timelapse.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_timelapse.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_star.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_star.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_logo_qwant.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_logo_qwant.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_add_thin.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_add_thin.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_bg_tab_pill.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\bg_tab_pill.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_bg_tab_pill.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/bg_tab_pill.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_search.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_search.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/layout_item_tab.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/layout/item_tab.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_bg_button_circle.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\bg_button_circle.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/layout_dialog_settings.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/layout/dialog_settings.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_settings.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_settings.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_heart_filled.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_heart_filled.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_launcher.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_launcher.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_clear_all_thin.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_clear_all_thin.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_add_thin.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_add_thin.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_bg_address_bar.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/bg_address_bar.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_clear_all_thin.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_clear_all_thin.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_bg_tabs_fade_gradient.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/bg_tabs_fade_gradient.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_bg_button.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\bg_button.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_search.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_search.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_logo_duckduckgo.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_logo_duckduckgo.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_timelapse.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_timelapse.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_clock.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_clock.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_arrow_back_thin.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_arrow_back_thin.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_logo_google.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_logo_google.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_bg_tabs_fade_gradient.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\bg_tabs_fade_gradient.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\layout_dialog_settings.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\layout\\dialog_settings.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_download.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_download.xml"
-    },
-    {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_heart.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_heart.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_refresh.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_refresh.xml"
     },
     {
         "merged": "com.mementomoria161.bare.app-debug-31:/layout_activity_main.xml.flat",
         "source": "com.mementomoria161.bare.app-main-33:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_star_filled.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_star_filled.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/layout_dialog_tabs.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/layout/dialog_tabs.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_tabs.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_tabs.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_settings.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_settings.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_desktop.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_desktop.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_close_thin.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_close_thin.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_logo_ecosia.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_logo_ecosia.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_logo_qwant.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_logo_qwant.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\layout_activity_main.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\layout\\activity_main.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_logo_bing.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_logo_bing.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_info.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_info.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_bookmark.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_bookmark.xml"
     },
     {
-        "merged": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-debug-31:\\drawable_ic_bookmark_filled.xml.flat",
-        "source": "C:\\Users\\nikim\\.gradle\\daemon\\9.6.1\\com.mementomoria161.bare.app-main-33:\\drawable\\ic_bookmark_filled.xml"
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_bg_button.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/bg_button.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_bg_button_circle.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/bg_button_circle.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_arrow_back_thin.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_arrow_back_thin.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_info.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_info.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_search_gear.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_search_gear.xml"
+    },
+    {
+        "merged": "com.mementomoria161.bare.app-debug-31:/drawable_ic_tabs.xml.flat",
+        "source": "com.mementomoria161.bare.app-main-33:/drawable/ic_tabs.xml"
     }
 ]
