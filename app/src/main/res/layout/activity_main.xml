@@ -41,7 +41,7 @@
     <!-- Unprocess-style Pop-up Settings Stack (No clipping during overshoot animations) -->
     <LinearLayout
         android:id="@+id/settingsPanel"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="end"
@@ -49,285 +49,590 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         app:layout_constraintBottom_toTopOf="@id/bottomBarCard"
+        app:layout_constraintStart_toStartOf="@id/bottomBarCard"
         app:layout_constraintEnd_toEndOf="@id/bottomBarCard"
-        android:layout_marginBottom="12dp">
+        android:paddingBottom="24dp">
 
-        <!-- Horizontal Bookmark Row (Manager + Add Button) -->
-        <LinearLayout
-            android:id="@+id/bookmarkRow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="8dp"
-            android:clipChildren="false"
-            android:clipToPadding="false">
-
-            <!-- Bookmark Manager Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSettingBookmarkManager"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="wrap_content"
-                android:layout_height="56dp"
-                android:text="Bookmark Manager"
-                android:textSize="15sp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
-                app:icon="@drawable/ic_bookmark_manager"
-                app:iconPadding="8dp"
-                app:iconSize="20dp"
-                app:iconGravity="start"
-                app:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                app:iconTint="?attr/colorOnSurface" />
-
-            <!-- Add Bookmark Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSettingAddBookmark"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:insetLeft="0dp"
-                android:insetRight="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                app:icon="@drawable/ic_heart"
-                app:iconSize="20dp"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:backgroundTint="?attr/colorSurfaceVariant"
-                android:textColor="?attr/colorOnSurface"
-                app:iconTint="?attr/colorOnSurface" />
-
-        </LinearLayout>
-
-        <!-- Horizontal Scrollable Search Engine Row -->
-        <HorizontalScrollView
+        <!-- Clear Cache/Cookies Pill -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnSettingClearData"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
+            android:layout_height="120dp"
             android:layout_marginBottom="8dp"
+            app:cardCornerRadius="60dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipChildren="true"
+            android:clipToPadding="false">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/ivSettingClearDataLogoCard"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginStart="12dp"
+                    app:cardCornerRadius="48dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivSettingClearDataLogo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="center"
+                        android:contentDescription="Clear data icon"
+                        android:src="@drawable/ic_clear_all_thin"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Clear Data"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toEndOf="@id/ivSettingClearDataLogoCard"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Desktop Mode Switch Pill -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnSettingDesktopSite"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="60dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipChildren="true"
+            android:clipToPadding="false">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/ivSettingDesktopLogoCard"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginStart="12dp"
+                    app:cardCornerRadius="48dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivSettingDesktopLogo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="center"
+                        android:contentDescription="Desktop view icon"
+                        android:src="@drawable/ic_desktop"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp"
+                    app:layout_constraintStart_toEndOf="@id/ivSettingDesktopLogoCard"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Desktop View"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:singleLine="true"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/tvSettingDesktopStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Disabled"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:ellipsize="end" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Auto-Close Tabs Pill -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnSettingAutoClose"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="60dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipChildren="true"
+            android:clipToPadding="false">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="24dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/ivSettingAutoCloseLogoCard"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginStart="12dp"
+                    app:cardCornerRadius="48dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <ImageView
+                        android:id="@+id/ivSettingAutoCloseLogo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="center"
+                        android:contentDescription="Auto-close tabs icon"
+                        android:src="@drawable/ic_timelapse"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp"
+                    app:layout_constraintStart_toEndOf="@id/ivSettingAutoCloseLogoCard"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Auto-Close Tabs"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:singleLine="true"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/tvSettingAutoCloseStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Never"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:ellipsize="end" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Search Engine Selection Card (Styled like tab pills) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/searchEngineSectionPill"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="60dp"
+            app:cardBackgroundColor="?attr/colorSurfaceVariant"
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="0dp"
+            app:cardElevation="0dp"
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingStart="0dp"
+                android:paddingEnd="24dp"
                 android:clipChildren="false"
                 android:clipToPadding="false">
 
-                <!-- Google Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingSearchEngineGoogle"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:icon="@drawable/ic_logo_google"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    app:iconTint="?attr/colorOnSurface" />
+                <!-- Circular Active Search Engine Logo Card (96dp) -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/searchEngineLogoCard"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginStart="12dp"
+                    app:cardCornerRadius="48dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
 
-                <!-- DuckDuckGo Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingSearchEngineDuckDuckGo"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:icon="@drawable/ic_logo_duckduckgo"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    app:iconTint="?attr/colorOnSurface" />
+                    <ImageView
+                        android:id="@+id/ivSettingActiveSearchLogo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="center"
+                        android:contentDescription="Selected search engine logo"
+                        android:src="@drawable/ic_search_gear"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+                </com.google.android.material.card.MaterialCardView>
 
-                <!-- Bing Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingSearchEngineBing"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:icon="@drawable/ic_logo_bing"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    app:iconTint="?attr/colorOnSurface" />
+                <!-- Text and Buttons Container -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    app:layout_constraintStart_toEndOf="@id/searchEngineLogoCard"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
 
-                <!-- Ecosia Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingSearchEngineEcosia"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:icon="@drawable/ic_logo_ecosia"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    app:iconTint="?attr/colorOnSurface" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="bottom">
 
-                <!-- Custom Engine Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingSearchEngineCustom"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:text="Custom"
-                    android:textSize="14sp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    app:icon="@drawable/ic_settings"
-                    app:iconSize="20dp"
-                    app:iconGravity="start"
-                    app:iconPadding="8dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    android:textColor="?attr/colorOnSurface"
-                    app:iconTint="?attr/colorOnSurface"
-                    android:visibility="gone" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Search Engine"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:singleLine="true"
+                            android:ellipsize="end" />
 
-                <!-- Add Custom Search Engine Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSettingCustomSearch"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="8dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:insetLeft="0dp"
-                    android:insetRight="0dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    app:icon="@drawable/ic_add"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
-                    android:textColor="?attr/colorOnSurface"
-                    app:iconTint="?attr/colorOnSurface" />
+                        <TextView
+                            android:id="@+id/tvSettingSelectedSearchEngine"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Google"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:textSize="18sp"
+                            android:singleLine="true"
+                            android:ellipsize="end" />
+                    </LinearLayout>
 
-            </LinearLayout>
-        </HorizontalScrollView>
 
-        <!-- Desktop Mode Switch Button (Indicated via color state) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettingDesktopSite"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:text="Desktop View"
-            android:textSize="15sp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            app:icon="@drawable/ic_desktop"
-            app:iconPadding="8dp"
-            app:iconSize="20dp"
-            app:iconGravity="start"
-            app:backgroundTint="?attr/colorSurfaceVariant"
-            android:textColor="?attr/colorOnSurface"
-            app:iconTint="?attr/colorOnSurface" />
-        <!-- Auto-Close Tabs Selector Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettingAutoClose"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="56dp"
-            android:layout_marginBottom="8dp"
-            android:text="Auto-Close Tabs: Never"
-            android:textSize="15sp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            app:icon="@drawable/ic_timelapse"
-            app:iconPadding="8dp"
-            app:iconSize="20dp"
-            app:iconGravity="start"
-            app:backgroundTint="?attr/colorSurfaceVariant"
-            android:textColor="?attr/colorOnSurface"
-            app:iconTint="?attr/colorOnSurface" />
 
-        <!-- Clear Cache/Cookies Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettingClearData"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="56dp"
-            android:text="Clear Data"
-            android:textColor="@android:color/holo_red_dark"
-            android:textSize="15sp"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:insetLeft="0dp"
-            android:insetRight="0dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            app:icon="@drawable/ic_clear_all_thin"
-            app:iconPadding="8dp"
-            app:iconSize="20dp"
-            app:iconGravity="start"
-            app:backgroundTint="?attr/colorSurfaceVariant"
-            app:iconTint="@android:color/holo_red_dark" />
+                    <!-- Horizontal Scrollable Row for buttons (compact 44dp height) -->
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:layout_marginTop="6dp"
+                        android:scrollbars="none"
+                        android:clipChildren="false"
+                        android:clipToPadding="false">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
+
+                            <!-- Google Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineGoogle"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_logo_google"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                            <!-- Ecosia Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineEcosia"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_logo_ecosia"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                            <!-- DuckDuckGo Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineDuckDuckGo"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_logo_duckduckgo"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                            <!-- Qwant Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineQwant"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_logo_qwant"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                            <!-- Bing Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineBing"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_logo_bing"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                            <!-- Custom Engine Button (Display search_24px icon, no text) -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingSearchEngineCustom"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_search"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                app:iconTint="?attr/colorOnSurfaceVariant"
+                                android:visibility="gone" />
+
+                            <!-- Add Custom Search Engine Button -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnSettingCustomSearch"
+                                style="@style/Widget.Material3.Button.TonalButton"
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:insetLeft="0dp"
+                                android:insetRight="0dp"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                app:icon="@drawable/ic_add"
+                                app:iconSize="20dp"
+                                app:iconGravity="textStart"
+                                app:iconPadding="0dp"
+                                app:backgroundTint="@android:color/transparent"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                app:iconTint="?attr/colorOnSurfaceVariant" />
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Split Favorites Card Horizontal Layout -->
+        <LinearLayout
+            android:id="@+id/favoritesSplitSection"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginBottom="0dp"
+            android:orientation="horizontal"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- Left Pill: Manage Favorites -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnSettingManageFavorites"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:cardCornerRadius="60dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                app:strokeWidth="0dp"
+                app:cardElevation="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:clipChildren="true"
+                android:clipToPadding="false">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="24dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/manageFavoritesIconCard"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        android:layout_marginStart="12dp"
+                        app:cardCornerRadius="48dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent">
+
+                        <ImageView
+                            android:id="@+id/ivSettingManageFavoritesLogo"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="center"
+                            android:contentDescription="Manage favorites icon"
+                            android:src="@drawable/ic_bookmark_manager"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Manage Favorites"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="@id/manageFavoritesIconCard"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Right Circular Button: Toggle Favorite -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnSettingFavorites"
+                android:layout_width="120dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                app:cardCornerRadius="60dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                app:strokeWidth="0dp"
+                app:cardElevation="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:clipChildren="true"
+                android:clipToPadding="false">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/ivSettingFavoritesHeartCard"
+                        android:layout_width="96dp"
+                        android:layout_height="96dp"
+                        app:cardCornerRadius="48dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent">
+
+                        <ImageView
+                            android:id="@+id/ivSettingFavoritesHeart"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="center"
+                            android:contentDescription="Favorites status icon"
+                            android:src="@drawable/ic_heart"
+                            app:tint="?attr/colorOnSurfaceVariant" />
+                    </com.google.android.material.card.MaterialCardView>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -373,7 +678,7 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:paddingTop="8dp"
-                android:paddingBottom="12dp"
+                android:paddingBottom="24dp"
                 android:clipChildren="false"
                 android:clipToPadding="false">
 
@@ -393,11 +698,11 @@
                     android:paddingStart="24dp"
                     android:paddingEnd="24dp"
                     android:text="Clear All"
-                    android:textColor="@android:color/holo_red_dark"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="15sp"
-                    app:backgroundTint="?attr/colorSurfaceVariant"
+                    app:backgroundTint="?attr/colorPrimaryContainer"
                     app:icon="@drawable/ic_clear_all_thin"
-                    app:iconTint="@android:color/holo_red_dark"
+                    app:iconTint="?attr/colorOnPrimaryContainer"
                     app:iconSize="20dp"
                     app:iconPadding="8dp"
                     app:iconGravity="start" />
@@ -408,8 +713,8 @@
     <!-- Custom In-App Download Notification Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/downloadNotificationCard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
         android:layout_marginBottom="12dp"
         android:visibility="gone"
         app:cardCornerRadius="28dp"
@@ -421,12 +726,12 @@
         app:layout_constraintEnd_toEndOf="@id/bottomBarCard">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp">
 
             <!-- Download progress spinner -->
             <ProgressBar
@@ -434,25 +739,25 @@
                 style="?android:attr/progressBarStyleSmall"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="12dp"
+                android:indeterminateTint="?attr/colorOnSurfaceVariant" />
 
             <ImageView
                 android:id="@+id/downloadCompleteIcon"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:src="@drawable/ic_launcher"
+                android:src="@drawable/ic_download"
                 android:layout_marginEnd="12dp"
                 android:visibility="gone"
-                app:tint="?attr/colorPrimary" />
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <!-- Notification text -->
             <TextView
                 android:id="@+id/tvDownloadStatus"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Downloading file..."
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="14sp"
                 android:singleLine="true"
                 android:ellipsize="end" />

@@ -1,7 +1,6 @@
 <resources>
-    <!-- Base application theme. -->
-    <style name="Theme.Bare" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+    <!-- Base application theme (Enforced Dark Theme). -->
+    <style name="Theme.Bare" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="colorSecondary">@color/accent</item>
@@ -12,21 +11,21 @@
         
         <!-- Status bar and navigation bar colors -->
         <item name="android:statusBarColor">@color/surface</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@color/surface</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
-    <!-- Fullscreen Dialog Theme (Light) -->
-    <style name="Theme.Bare.FullscreenDialog" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Fullscreen Dialog Theme (Enforced Dark Theme) -->
+    <style name="Theme.Bare.FullscreenDialog" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowBackground">@color/window_background</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:statusBarColor">@color/window_background</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@color/window_background</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
     <!-- Custom FAB shape appearance overlay to unify shapes of tab overview buttons -->

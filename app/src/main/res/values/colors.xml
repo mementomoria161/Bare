@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand colors -->
-    <color name="primary">#4F46E5</color>
-    <color name="primary_dark">#3730A3</color>
-    <color name="primary_light">#EEF2F6</color>
-    <color name="accent">#4F46E5</color>
+    <color name="primary">#D0BCFF</color>
+    <color name="primary_dark">#B5A3DF</color>
+    <color name="primary_light">#2A233D</color>
+    <color name="accent">#D0BCFF</color>
 
-    <!-- Semantic colors (Light Mode) -->
-    <color name="window_background">#F9FAFB</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="border">#E5E7EB</color>
-    <color name="text_primary">#111827</color>
-    <color name="text_secondary">#6B7280</color>
-    <color name="divider">#F3F4F6</color>
-    <color name="address_bar_bg">#F3F4F6</color>
-    <color name="ripple">#10000000</color>
+    <!-- Semantic colors (Dark Mode - Aligned with Unprocess #1A1A1A) -->
+    <color name="window_background">#1A1A1A</color>
+    <color name="surface">#242424</color>
+    <color name="border">#333333</color>
+    <color name="text_primary">#F9FAFB</color>
+    <color name="text_secondary">#9CA3AF</color>
+    <color name="divider">#2C2C2C</color>
+    <color name="address_bar_bg">#2C2C2C</color>
+    <color name="ripple">#20FFFFFF</color>
 </resources>

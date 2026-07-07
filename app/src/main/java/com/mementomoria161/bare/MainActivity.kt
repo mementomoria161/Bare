@@ -38,6 +38,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -81,21 +82,33 @@ class MainActivity : AppCompatActivity() {
     // Unprocess settings views
     private lateinit var settingsPanel: LinearLayout
     private lateinit var settingsDimOverlay: View
-    private lateinit var btnSettingBookmarkManager: com.google.android.material.button.MaterialButton
-    private lateinit var btnSettingAddBookmark: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingManageFavorites: com.google.android.material.card.MaterialCardView
+    private lateinit var btnSettingFavorites: com.google.android.material.card.MaterialCardView
+    private lateinit var tvSettingSelectedSearchEngine: TextView
     private lateinit var btnSettingSearchEngineGoogle: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingSearchEngineDuckDuckGo: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingSearchEngineBing: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingSearchEngineEcosia: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingSearchEngineQwant: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingSearchEngineCustom: com.google.android.material.button.MaterialButton
     private lateinit var btnSettingCustomSearch: com.google.android.material.button.MaterialButton
-    private lateinit var btnSettingDesktopSite: com.google.android.material.button.MaterialButton
-    private lateinit var btnSettingAutoClose: com.google.android.material.button.MaterialButton
-    private lateinit var btnSettingClearData: com.google.android.material.button.MaterialButton
+    private lateinit var btnSettingDesktopSite: com.google.android.material.card.MaterialCardView
+    private lateinit var btnSettingAutoClose: com.google.android.material.card.MaterialCardView
+    private lateinit var btnSettingClearData: com.google.android.material.card.MaterialCardView
+    private lateinit var ivSettingActiveSearchLogo: ImageView
+    private lateinit var ivSettingFavoritesHeart: ImageView
+    private lateinit var ivSettingFavoritesHeartCard: com.google.android.material.card.MaterialCardView
+    private lateinit var tvSettingDesktopStatus: TextView
+    private lateinit var tvSettingAutoCloseStatus: TextView
+    private lateinit var ivSettingDesktopLogoCard: com.google.android.material.card.MaterialCardView
+    private lateinit var ivSettingDesktopLogo: ImageView
+    private lateinit var ivSettingAutoCloseLogoCard: com.google.android.material.card.MaterialCardView
+    private lateinit var ivSettingAutoCloseLogo: ImageView
 
     private var isSettingsOpen = false
     private var isAnimatingSettings = false
     private var currentStatusColor = android.graphics.Color.TRANSPARENT
+    private var isCustomSearchDeleteState = false
 
     // Unprocess tabs views
     private lateinit var tabsPanel: FrameLayout
@@ -117,7 +130,6 @@ class MainActivity : AppCompatActivity() {
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private lateinit var fullscreenContainer: FrameLayout
-    private var originalSystemUiVisibility = 0
 
     // Download notification views
     private lateinit var downloadNotificationCard: com.google.android.material.card.MaterialCardView
@@ -127,26 +139,7 @@ class MainActivity : AppCompatActivity() {
 
     private val downloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == intent?.action) {
-                val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L)
-                if (id != -1L) {
-                    val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    val query = DownloadManager.Query().setFilterById(id)
-                    val cursor = dm.query(query)
-                    if (cursor.moveToFirst()) {
-                        val statusIdx = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                        val titleIdx = cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)
-                        val status = if (statusIdx != -1) cursor.getInt(statusIdx) else -1
-                        val title = if (titleIdx != -1) cursor.getString(titleIdx) else "file"
-                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
-                            showDownloadNotification("Download completed: $title", isLoading = false)
-                        } else {
-                            showDownloadNotification("Download failed: $title", isLoading = false, isFailed = true)
-                        }
-                    }
-                    cursor.close()
-                }
-            }
+            // Silence in-app notifications on download complete (only standard system status bar notification is shown)
         }
     }
 
@@ -157,6 +150,7 @@ class MainActivity : AppCompatActivity() {
     private var isBottomBarHidden = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         // Apply Material You dynamic color theme to activity if supported by user device
         DynamicColors.applyToActivityIfAvailable(this)
         
@@ -172,6 +166,9 @@ class MainActivity : AppCompatActivity() {
         // Enforce transparent navigation and status bar at all times
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
         window.statusBarColor = android.graphics.Color.TRANSPARENT
+        
+        // Set window format to translucent to prevent screen flickering during hardware-accelerated video playback
+        window.setFormat(android.graphics.PixelFormat.TRANSLUCENT)
         
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -194,17 +191,28 @@ class MainActivity : AppCompatActivity() {
         // Initialize settings overlay views
         settingsPanel = findViewById(R.id.settingsPanel)
         settingsDimOverlay = findViewById(R.id.settingsDimOverlay)
-        btnSettingBookmarkManager = findViewById(R.id.btnSettingBookmarkManager)
-        btnSettingAddBookmark = findViewById(R.id.btnSettingAddBookmark)
+        btnSettingManageFavorites = findViewById(R.id.btnSettingManageFavorites)
+        btnSettingFavorites = findViewById(R.id.btnSettingFavorites)
+        tvSettingSelectedSearchEngine = findViewById(R.id.tvSettingSelectedSearchEngine)
         btnSettingSearchEngineGoogle = findViewById(R.id.btnSettingSearchEngineGoogle)
         btnSettingSearchEngineDuckDuckGo = findViewById(R.id.btnSettingSearchEngineDuckDuckGo)
         btnSettingSearchEngineBing = findViewById(R.id.btnSettingSearchEngineBing)
         btnSettingSearchEngineEcosia = findViewById(R.id.btnSettingSearchEngineEcosia)
+        btnSettingSearchEngineQwant = findViewById(R.id.btnSettingSearchEngineQwant)
         btnSettingSearchEngineCustom = findViewById(R.id.btnSettingSearchEngineCustom)
         btnSettingCustomSearch = findViewById(R.id.btnSettingCustomSearch)
         btnSettingDesktopSite = findViewById(R.id.btnSettingDesktopSite)
         btnSettingAutoClose = findViewById(R.id.btnSettingAutoClose)
         btnSettingClearData = findViewById(R.id.btnSettingClearData)
+        ivSettingActiveSearchLogo = findViewById(R.id.ivSettingActiveSearchLogo)
+        ivSettingFavoritesHeart = findViewById(R.id.ivSettingFavoritesHeart)
+        ivSettingFavoritesHeartCard = findViewById(R.id.ivSettingFavoritesHeartCard)
+        tvSettingDesktopStatus = findViewById(R.id.tvSettingDesktopStatus)
+        tvSettingAutoCloseStatus = findViewById(R.id.tvSettingAutoCloseStatus)
+        ivSettingDesktopLogoCard = findViewById(R.id.ivSettingDesktopLogoCard)
+        ivSettingDesktopLogo = findViewById(R.id.ivSettingDesktopLogo)
+        ivSettingAutoCloseLogoCard = findViewById(R.id.ivSettingAutoCloseLogoCard)
+        ivSettingAutoCloseLogo = findViewById(R.id.ivSettingAutoCloseLogo)
         tabsPanel = findViewById(R.id.tabsPanel)
         clearAllContainer = findViewById(R.id.clearAllContainer)
         fullscreenContainer = findViewById(R.id.fullscreenContainer)
@@ -295,10 +303,18 @@ class MainActivity : AppCompatActivity() {
                 
                 addressInput.setText(currentText)
                 if (hasFocus && currentText.isNotEmpty()) {
-                    addressInput.selectAll()
+                    addressInput.post {
+                        addressInput.selectAll()
+                    }
                 }
                 
                 updateAddressBarButtonsState()
+            }
+        }
+
+        addressInput.setOnClickListener {
+            if (addressInput.isFocused) {
+                addressInput.selectAll()
             }
         }
 
@@ -336,6 +352,7 @@ class MainActivity : AppCompatActivity() {
 
         // Address Bar button: refreshes or stops loading, or clears text when typing
         btnRefresh.setOnClickListener {
+            closeAllOverlays()
             if (addressInput.isFocused) {
                 addressInput.setText("")
             } else if (activeTabIndex in tabList.indices) {
@@ -350,16 +367,19 @@ class MainActivity : AppCompatActivity() {
 
         // Dynamic New Tab button inside bottom capsule bar
         btnNewTabMain.setOnClickListener {
+            closeAllOverlays()
             addNewTab("about:blank")
         }
 
         // Tab Overview Inline toggle
         btnTabOverview.setOnClickListener {
+            closeAllOverlays(excludeTabs = true)
             toggleTabsOverview()
         }
 
         // Unprocess settings pop-up triggers
         btnSettings.setOnClickListener {
+            closeAllOverlays(excludeSettings = true)
             toggleSettingsMenu()
         }
 
@@ -389,13 +409,14 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        btnSettingBookmarkManager.setOnClickListener {
+        btnSettingManageFavorites.setOnClickListener {
             showBookmarksOverview()
         }
 
-        btnSettingAddBookmark.setOnClickListener {
+        btnSettingFavorites.setOnClickListener {
             addCurrentPageToBookmarks()
         }
+
 
         btnSettingSearchEngineGoogle.setOnClickListener {
             sharedPreferences.edit().putString("search_engine", "google").apply()
@@ -417,9 +438,31 @@ class MainActivity : AppCompatActivity() {
             updateSettingsButtonsUI()
         }
 
-        btnSettingSearchEngineCustom.setOnClickListener {
-            sharedPreferences.edit().putString("search_engine", "custom").apply()
+        btnSettingSearchEngineQwant.setOnClickListener {
+            sharedPreferences.edit().putString("search_engine", "qwant").apply()
             updateSettingsButtonsUI()
+        }
+
+        btnSettingSearchEngineCustom.setOnClickListener {
+            val engine = sharedPreferences.getString("search_engine", "google") ?: "google"
+            if (engine == "custom") {
+                if (isCustomSearchDeleteState) {
+                    sharedPreferences.edit()
+                        .putString("custom_search_prefix", "")
+                        .putString("custom_search_name", "")
+                        .putString("search_engine", "google")
+                        .apply()
+                    isCustomSearchDeleteState = false
+                    updateSettingsButtonsUI()
+                } else {
+                    isCustomSearchDeleteState = true
+                    updateSettingsButtonsUI()
+                }
+            } else {
+                sharedPreferences.edit().putString("search_engine", "custom").apply()
+                isCustomSearchDeleteState = false
+                updateSettingsButtonsUI()
+            }
         }
 
         btnSettingCustomSearch.setOnClickListener {
@@ -472,6 +515,20 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    // Dismiss keyboard and clear URL bar focus when tapping anywhere outside it
+    override fun dispatchTouchEvent(ev: android.view.MotionEvent): Boolean {
+        if (ev.action == android.view.MotionEvent.ACTION_DOWN && addressInput.isFocused) {
+            val rect = android.graphics.Rect()
+            addressInput.getGlobalVisibleRect(rect)
+            if (!rect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
+                addressInput.clearFocus()
+                val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(addressInput.windowToken, 0)
+            }
+        }
+        return super.dispatchTouchEvent(ev)
+    }
+
     // Scroll-to-Hide / Scroll-to-Show bottom toolbar animations
     private fun showBottomBar() {
         if (!isBottomBarHidden) return
@@ -518,13 +575,12 @@ class MainActivity : AppCompatActivity() {
         isAnimatingSettings = true
         isSettingsOpen = !isSettingsOpen
 
-        val bookmarkRow = findViewById<View>(R.id.bookmarkRow)
         val toggles = listOf(
-            bookmarkRow,
-            btnSettingSearchEngineGoogle.parent.parent as View, // Grouped Search Engine Row container
+            btnSettingClearData,
             btnSettingDesktopSite,
             btnSettingAutoClose,
-            btnSettingClearData
+            findViewById<View>(R.id.searchEngineSectionPill),
+            findViewById<View>(R.id.favoritesSplitSection)
         )
 
         if (isSettingsOpen) {
@@ -550,33 +606,41 @@ class MainActivity : AppCompatActivity() {
             // Animate vertically from bottom to top (Y-axis instead of X-axis)
             val startTranslationY = dpToPx(this, 100).toFloat()
             val count = toggles.size
-            toggles.forEachIndexed { index, button ->
-                button.alpha = 0f
-                button.scaleX = 0.3f
-                button.scaleY = 0.3f
-                button.translationX = 0f
-                button.translationY = startTranslationY
 
-                // Stagger delay from bottom to top: bottom item animates first
-                button.animate()
-                    .alpha(1f)
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .translationX(0f)
-                    .translationY(0f)
-                    .setDuration(280)
-                    .setStartDelay((count - 1 - index) * 60L)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
-                    .setListener(if (index == 0) { // top item completes animation last when opening
-                        object : android.animation.AnimatorListenerAdapter() {
-                            override fun onAnimationEnd(animation: android.animation.Animator) {
-                                isAnimatingSettings = false
+            settingsPanel.post {
+                toggles.forEach { button ->
+                    button.animate().cancel()
+                    button.alpha = 0f
+                    button.scaleX = 0.3f
+                    button.scaleY = 0.3f
+                    button.translationX = 0f
+                    button.translationY = startTranslationY
+                }
+
+                // Settings is a static LinearLayout (not scrollable), so every item
+                // always animates to full alpha and scale — no edge-clipping math needed.
+                toggles.forEachIndexed { index, button ->
+                    button.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .translationX(0f)
+                        .translationY(0f)
+                        .setDuration(280)
+                        .setStartDelay(120L + (count - 1 - index) * 60L)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
+                        .setListener(if (index == 0) { // top item completes animation last when opening
+                            object : android.animation.AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: android.animation.Animator) {
+                                    isAnimatingSettings = false
+                                }
                             }
-                        }
-                    } else null)
-                    .start()
+                        } else null)
+                        .start()
+                }
             }
         } else {
+            isCustomSearchDeleteState = false
             // Restore normal status bar color when settings dim overlay closes
             val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
             windowInsetsController.isAppearanceLightStatusBars = !isColorDark(currentStatusColor)
@@ -651,6 +715,13 @@ class MainActivity : AppCompatActivity() {
             val showClearAll = !isShowingBookmarks && consecutiveTabsClosed >= 2 && tabList.isNotEmpty()
             btnClearAllInline.visibility = if (showClearAll) View.VISIBLE else View.GONE
             clearAllContainer.visibility = if (showClearAll) View.VISIBLE else View.GONE
+
+            // Capture thumbnail of current active tab before showing the overview,
+            // so it always has a fresh screenshot even if we never switched away from it.
+            if (!isShowingBookmarks && activeTabIndex in tabList.indices) {
+                captureTabThumbnail(tabList[activeTabIndex])
+            }
+
             rvTabsInline.alpha = 0f // Hide recycler view so children don't flash before animation setup
             setupInlineTabAdapter(rvTabsInline, btnClearAllInline)
 
@@ -692,7 +763,7 @@ class MainActivity : AppCompatActivity() {
                     .translationY(0f)
                     .setDuration(280)
                     .setStartDelay(0L)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
+                    .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
                     .start()
             }
 
@@ -730,7 +801,7 @@ class MainActivity : AppCompatActivity() {
                         .translationY(0f)
                         .setDuration(280)
                         .setStartDelay(120L + (childCount - 1 - i) * 60L)
-                        .setInterpolator(android.view.animation.OvershootInterpolator(1.1f))
+                        .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
                         .start()
                 }
             }
@@ -799,11 +870,36 @@ class MainActivity : AppCompatActivity() {
                         onFinished?.invoke()
                         if (tabList.isEmpty()) {
                             addNewTab("about:blank")
+                        } else {
+                            if (activeTabIndex in tabList.indices) {
+                                val activeTab = tabList[activeTabIndex]
+                                val isTabBlank = activeTab.url == "about:blank" || activeTab.url.startsWith("file:///android_asset/")
+                                if (!isTabBlank) {
+                                    updateDynamicColors(activeTab.webView)
+                                } else {
+                                    resetUiColors()
+                                }
+                            }
                         }
                     }
                 })
                 .start()
         }
+    }
+
+    private fun closeAllOverlays(excludeTabs: Boolean = false, excludeSettings: Boolean = false) {
+        if (!excludeSettings && isSettingsOpen) {
+            toggleSettingsMenu()
+        }
+        if (!excludeTabs && isTabsOpen) {
+            toggleTabsOverview()
+        }
+        if (customView != null) {
+            hideCustomView()
+        }
+        downloadNotificationCard.visibility = View.GONE
+        mainHandler.removeCallbacksAndMessages(null)
+        isCustomSearchDeleteState = false
     }
 
     private fun setupInlineTabAdapter(rvTabs: androidx.recyclerview.widget.RecyclerView, btnClearAll: Button) {
@@ -909,9 +1005,8 @@ class MainActivity : AppCompatActivity() {
                 button.setTextColor(typedVal.data)
                 button.iconTint = android.content.res.ColorStateList.valueOf(typedVal.data)
             } else {
-                theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedVal, true)
-                button.backgroundTintList = android.content.res.ColorStateList.valueOf(typedVal.data)
-                theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedVal, true)
+                button.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+                theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedVal, true)
                 button.setTextColor(typedVal.data)
                 button.iconTint = android.content.res.ColorStateList.valueOf(typedVal.data)
             }
@@ -921,13 +1016,25 @@ class MainActivity : AppCompatActivity() {
         highlightSearchButton(btnSettingSearchEngineDuckDuckGo, engine == "duckduckgo")
         highlightSearchButton(btnSettingSearchEngineBing, engine == "bing")
         highlightSearchButton(btnSettingSearchEngineEcosia, engine == "ecosia")
+        highlightSearchButton(btnSettingSearchEngineQwant, engine == "qwant")
+
+        if (engine != "custom") {
+            isCustomSearchDeleteState = false
+        }
 
         val customPrefix = sharedPreferences.getString("custom_search_prefix", "") ?: ""
         if (customPrefix.isNotEmpty()) {
             btnSettingSearchEngineCustom.visibility = View.VISIBLE
-            val customName = sharedPreferences.getString("custom_search_name", "Custom") ?: "Custom"
-            btnSettingSearchEngineCustom.text = customName
-            highlightSearchButton(btnSettingSearchEngineCustom, engine == "custom")
+            if (engine == "custom" && isCustomSearchDeleteState) {
+                btnSettingSearchEngineCustom.setIconResource(R.drawable.ic_close_thin)
+                btnSettingSearchEngineCustom.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+                btnSettingSearchEngineCustom.iconTint = android.content.res.ColorStateList.valueOf(
+                    androidx.core.content.ContextCompat.getColor(this, android.R.color.holo_red_dark)
+                )
+            } else {
+                btnSettingSearchEngineCustom.setIconResource(R.drawable.ic_search)
+                highlightSearchButton(btnSettingSearchEngineCustom, engine == "custom")
+            }
         } else {
             btnSettingSearchEngineCustom.visibility = View.GONE
             if (engine == "custom") {
@@ -936,25 +1043,28 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        val engineLabel = if (engine == "custom") {
+            sharedPreferences.getString("custom_search_name", "Custom") ?: "Custom"
+        } else {
+            engine.replaceFirstChar { it.uppercase() }
+        }
+        tvSettingSelectedSearchEngine.text = engineLabel
+
         // 2. Desktop Mode color indicator formatting (matching Unprocess style)
         val isDesktop = sharedPreferences.getBoolean("desktop_mode", false)
-        btnSettingDesktopSite.text = "Desktop View"
+        tvSettingDesktopStatus.text = if (isDesktop) "Enabled" else "Disabled"
         
         val typedValue = TypedValue()
         if (isDesktop) {
-            // Active state: filled with dynamic primary container colors
             theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
-            btnSettingDesktopSite.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingDesktopLogoCard.setCardBackgroundColor(typedValue.data)
             theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)
-            btnSettingDesktopSite.setTextColor(typedValue.data)
-            btnSettingDesktopSite.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingDesktopLogo.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         } else {
-            // Inactive state: surface variant tones
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
-            btnSettingDesktopSite.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
-            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
-            btnSettingDesktopSite.setTextColor(typedValue.data)
-            btnSettingDesktopSite.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainer, typedValue, true)
+            ivSettingDesktopLogoCard.setCardBackgroundColor(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+            ivSettingDesktopLogo.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         }
 
         // 3. Auto-Close Tabs label formatting
@@ -966,23 +1076,21 @@ class MainActivity : AppCompatActivity() {
             "month" -> "1 Month"
             else -> "Never"
         }
-        btnSettingAutoClose.text = "Auto-Close Tabs: $autoCloseLabel"
+        tvSettingAutoCloseStatus.text = autoCloseLabel
         
         if (autoClose != "never") {
             theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
-            btnSettingAutoClose.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingAutoCloseLogoCard.setCardBackgroundColor(typedValue.data)
             theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)
-            btnSettingAutoClose.setTextColor(typedValue.data)
-            btnSettingAutoClose.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingAutoCloseLogo.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         } else {
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
-            btnSettingAutoClose.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
-            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
-            btnSettingAutoClose.setTextColor(typedValue.data)
-            btnSettingAutoClose.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainer, typedValue, true)
+            ivSettingAutoCloseLogoCard.setCardBackgroundColor(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+            ivSettingAutoCloseLogo.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         }
 
-        // 4. Bookmark Add button filled state and highlighting
+        // 4. Favorites Add button filled state and highlighting
         val exists = if (activeTabIndex in tabList.indices) {
             val activeTab = tabList[activeTabIndex]
             val url = activeTab.webView.url ?: activeTab.url
@@ -992,19 +1100,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (exists) {
-            btnSettingAddBookmark.setIconResource(R.drawable.ic_heart_filled)
+            ivSettingFavoritesHeart.setImageResource(R.drawable.ic_heart_filled)
             theme.resolveAttribute(com.google.android.material.R.attr.colorPrimaryContainer, typedValue, true)
-            btnSettingAddBookmark.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingFavoritesHeartCard.setCardBackgroundColor(typedValue.data)
             theme.resolveAttribute(com.google.android.material.R.attr.colorOnPrimaryContainer, typedValue, true)
-            btnSettingAddBookmark.setTextColor(typedValue.data)
-            btnSettingAddBookmark.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingFavoritesHeart.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         } else {
-            btnSettingAddBookmark.setIconResource(R.drawable.ic_heart)
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
-            btnSettingAddBookmark.backgroundTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
-            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, typedValue, true)
-            btnSettingAddBookmark.setTextColor(typedValue.data)
-            btnSettingAddBookmark.iconTint = android.content.res.ColorStateList.valueOf(typedValue.data)
+            ivSettingFavoritesHeart.setImageResource(R.drawable.ic_heart)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceContainer, typedValue, true)
+            ivSettingFavoritesHeartCard.setCardBackgroundColor(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+            ivSettingFavoritesHeart.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         }
     }
 
@@ -1160,7 +1266,7 @@ class MainActivity : AppCompatActivity() {
 
     // Generate dynamic start page HTML matching Material You theme colors (dark background matches Unprocess #1A1A1A)
     private fun getStartPageHtml(): String {
-        val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val isDark = true
         
         // Dynamically resolve wallpaper palette hex values (falls back to Unprocess charcoal #1A1A1A)
         val bgColor = getHexColor(android.R.attr.windowBackground, if (isDark) "#1A1A1A" else "#F9FAFB")
@@ -1257,9 +1363,7 @@ class MainActivity : AppCompatActivity() {
     private fun addNewTab(url: String = "about:blank") {
         consecutiveTabsClosed = 0
         closeActiveTabIfBlank()
-        if (isTabsOpen) {
-            toggleTabsOverview()
-        }
+        closeAllOverlays()
         val webView = createNewWebView()
         val tab = Tab(webView = webView, url = url)
         tabList.add(tab)
@@ -1296,6 +1400,7 @@ class MainActivity : AppCompatActivity() {
         if (activeTabIndex in tabList.indices && activeTabIndex != finalIndex) {
             captureTabThumbnail(tabList[activeTabIndex])
             tabList[activeTabIndex].webView.visibility = View.GONE
+            tabList[activeTabIndex].webView.onPause()
         }
 
         activeTabIndex = finalIndex
@@ -1304,6 +1409,7 @@ class MainActivity : AppCompatActivity() {
         
         // Show selected tab
         activeTab.webView.visibility = View.VISIBLE
+        activeTab.webView.onResume()
         activeTab.webView.requestFocus()
 
         // Force dynamic URL empty strings for blank/asset pages (no "about:blank" showing)
@@ -1327,7 +1433,12 @@ class MainActivity : AppCompatActivity() {
         
         // Apply webpage colors dynamically
         if (!isBlank) {
-            updateDynamicColors(activeTab.webView)
+            activeTab.webView.post {
+                updateDynamicColors(activeTab.webView)
+                activeTab.webView.postDelayed({
+                    updateDynamicColors(activeTab.webView)
+                }, 150)
+            }
         } else {
             resetUiColors()
         }
@@ -1471,6 +1582,11 @@ class MainActivity : AppCompatActivity() {
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
+        // Set slightly transparent background to prevent inline HTML5 video flickering on GPU rendering
+        webView.setBackgroundColor(android.graphics.Color.argb(1, 0, 0, 0))
+        // Force hardware layer type to synchronize video surface rendering and avoid screen-wide flickering
+        webView.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+
 
         // Web settings configuration
         webView.settings.apply {
@@ -1511,8 +1627,6 @@ class MainActivity : AppCompatActivity() {
 
         // Listen to scrolls on the WebView to resolve pull-to-refresh conflicts and scroll-to-hide
         webView.setOnScrollChangeListener { _, _, scrollY, _, oldScrollY ->
-            // Continuously update colors on scroll
-            updateDynamicColors(webView)
 
             val url = webView.url ?: ""
             val isBlank = url == "about:blank" || url.startsWith("file:///android_asset/") || url.isEmpty()
@@ -1646,17 +1760,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 customView = view
                 customViewCallback = callback
-                originalSystemUiVisibility = window.decorView.systemUiVisibility
-
-                // Hide system UI
-                window.decorView.systemUiVisibility = (
-                    View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                )
+                
+                // Hide system UI using modern insets API
+                val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                windowInsetsController.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+                windowInsetsController.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
                 fullscreenContainer.addView(view)
                 fullscreenContainer.visibility = View.VISIBLE
@@ -1707,12 +1815,12 @@ class MainActivity : AppCompatActivity() {
                 addRequestHeader("User-Agent", userAgent)
                 setDescription("Downloading file...")
                 setTitle(filename)
-                setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_HIDDEN)
+                setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, filename)
             }
             val dm = getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
             dm.enqueue(request)
-            showDownloadNotification("Downloading $filename...", isLoading = true)
+            showDownloadNotification("Download started", isLoading = true)
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "Download failed: ${e.message}", Toast.LENGTH_LONG).show()
@@ -1745,8 +1853,26 @@ class MainActivity : AppCompatActivity() {
         return tabList.indexOfFirst { it.webView == view }
     }
 
+    private fun isBitmapBlank(bitmap: Bitmap): Boolean {
+        val w = bitmap.width
+        val h = bitmap.height
+        if (w <= 0 || h <= 0) return true
+        val firstPixel = bitmap.getPixel(0, 0)
+        for (x in 0 until w step 5) {
+            for (y in 0 until h step 5) {
+                if (bitmap.getPixel(x, y) != firstPixel) {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
     // Capture low-resource 20%-scaled screenshot of a WebView to show as circular tab thumbnail
     private fun captureTabThumbnail(tab: Tab) {
+        // Background/inactive tabs should not be captured since they are not visible and will render as blank/black
+        if (tabList.indexOf(tab) != activeTabIndex) return
+        
         val webView = tab.webView
         if (webView.width <= 0 || webView.height <= 0) return
         try {
@@ -1759,7 +1885,11 @@ class MainActivity : AppCompatActivity() {
             val canvas = android.graphics.Canvas(bitmap)
             canvas.scale(scale, scale)
             webView.draw(canvas)
-            tab.thumbnail = bitmap
+            
+            // Only update the thumbnail if the tab has no thumbnail yet or the newly captured bitmap contains actual content (i.e. is not blank)
+            if (tab.thumbnail == null || !isBitmapBlank(bitmap)) {
+                tab.thumbnail = bitmap
+            }
 
             // Dynamically adapt UI colors to match the webpage's top-left pixel color
             if (tabList.indexOf(tab) == activeTabIndex) {
@@ -1784,9 +1914,10 @@ class MainActivity : AppCompatActivity() {
             swipeRefresh.setBackgroundColor(pixelColor)
             webViewContainer.setBackgroundColor(pixelColor)
 
-            swipeRefresh.setColorSchemeColors(pixelColor)
             val typedValue = android.util.TypedValue()
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+            swipeRefresh.setColorSchemeColors(typedValue.data)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
             swipeRefresh.setProgressBackgroundColorSchemeColor(typedValue.data)
 
             currentStatusColor = pixelColor
@@ -1808,7 +1939,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun resetUiColors() {
         try {
-            val isDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            val isDark = true
             // Dynamic window background aligns to Unprocess charcoal (#1A1A1A) in dark mode
             val systemColor = if (isDark) android.graphics.Color.parseColor("#1A1A1A") else android.graphics.Color.parseColor("#F9FAFB")
             
@@ -1824,9 +1955,9 @@ class MainActivity : AppCompatActivity() {
             windowInsetsController.isAppearanceLightNavigationBars = !isDark
 
             val typedValue = android.util.TypedValue()
-            theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
             swipeRefresh.setColorSchemeColors(typedValue.data)
-            theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+            theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
             swipeRefresh.setProgressBackgroundColorSchemeColor(typedValue.data)
 
             theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
@@ -1859,6 +1990,7 @@ class MainActivity : AppCompatActivity() {
             "duckduckgo" -> getString(R.string.search_prefix_duckduckgo)
             "bing" -> getString(R.string.search_prefix_bing)
             "ecosia" -> getString(R.string.search_prefix_ecosia)
+            "qwant" -> getString(R.string.search_prefix_qwant)
             "custom" -> sharedPreferences.getString("custom_search_prefix", getString(R.string.search_prefix_google)) ?: getString(R.string.search_prefix_google)
             else -> getString(R.string.search_prefix_google)
         }
@@ -1930,6 +2062,9 @@ class MainActivity : AppCompatActivity() {
                 jsonObj.put("url", tab.webView.url ?: tab.url)
                 jsonObj.put("title", tab.title)
                 jsonObj.put("lastActiveTime", tab.lastActiveTime)
+                tab.thumbnail?.let { bmp ->
+                    jsonObj.put("thumbnail", bitmapToBase64(bmp))
+                }
                 jsonArray.put(jsonObj)
             }
             sharedPreferences.edit()
@@ -1956,13 +2091,16 @@ class MainActivity : AppCompatActivity() {
                         val url = jsonObj.getString("url")
                         val title = jsonObj.optString("title", "New Tab")
                         val lastActiveTime = jsonObj.optLong("lastActiveTime", System.currentTimeMillis())
+                        val thumbnailBase64 = if (jsonObj.has("thumbnail")) jsonObj.getString("thumbnail") else null
+                        val thumbnail = if (!thumbnailBase64.isNullOrEmpty()) base64ToBitmap(thumbnailBase64) else null
                         
                         val webView = createNewWebView()
                         val tab = Tab(
                             webView = webView,
                             url = url,
                             title = title,
-                            lastActiveTime = lastActiveTime
+                            lastActiveTime = lastActiveTime,
+                            thumbnail = thumbnail
                         )
                         tabList.add(tab)
                         webViewContainer.addView(webView)
@@ -1971,6 +2109,13 @@ class MainActivity : AppCompatActivity() {
                             loadStartPage(tab)
                         } else {
                             webView.loadUrl(url)
+                        }
+                        val targetActiveIdx = if (savedActiveIndex in 0 until jsonArray.length()) savedActiveIndex else 0
+                        if (i != targetActiveIdx) {
+                            webView.visibility = View.GONE
+                            webView.onPause()
+                        } else {
+                            webView.visibility = View.VISIBLE
                         }
                     }
                     
@@ -1998,28 +2143,20 @@ class MainActivity : AppCompatActivity() {
     private var dismissNotificationRunnable: Runnable? = null
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
-    private fun showDownloadNotification(text: String, isLoading: Boolean, isFailed: Boolean = false) {
+    private fun showDownloadNotification(
+        text: String,
+        @Suppress("UNUSED_PARAMETER") isLoading: Boolean = true,
+        @Suppress("UNUSED_PARAMETER") isFailed: Boolean = false
+    ) {
         mainHandler.removeCallbacksAndMessages(null)
         
         tvDownloadStatus.text = text
-        if (isLoading) {
-            downloadProgress.visibility = View.VISIBLE
-            downloadCompleteIcon.visibility = View.GONE
-        } else {
-            downloadProgress.visibility = View.GONE
-            downloadCompleteIcon.visibility = View.VISIBLE
-            if (isFailed) {
-                downloadCompleteIcon.setImageResource(R.drawable.ic_close)
-                downloadCompleteIcon.imageTintList = android.content.res.ColorStateList.valueOf(
-                    getThemeColor(com.google.android.material.R.attr.colorError)
-                )
-            } else {
-                downloadCompleteIcon.setImageResource(R.drawable.ic_launcher)
-                downloadCompleteIcon.imageTintList = android.content.res.ColorStateList.valueOf(
-                    getThemeColor(com.google.android.material.R.attr.colorPrimary)
-                )
-            }
-        }
+        downloadProgress.visibility = View.GONE
+        downloadCompleteIcon.visibility = View.VISIBLE
+        downloadCompleteIcon.setImageResource(R.drawable.ic_download)
+        downloadCompleteIcon.imageTintList = android.content.res.ColorStateList.valueOf(
+            getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant)
+        )
         
         if (downloadNotificationCard.visibility != View.VISIBLE) {
             downloadNotificationCard.visibility = View.VISIBLE
@@ -2036,20 +2173,18 @@ class MainActivity : AppCompatActivity() {
             downloadNotificationCard.translationY = 0f
         }
         
-        if (!isLoading) {
-            dismissNotificationRunnable = Runnable {
-                downloadNotificationCard.animate()
-                    .alpha(0f)
-                    .translationY(dpToPx(this@MainActivity, 20).toFloat())
-                    .setDuration(200)
-                    .setInterpolator(android.view.animation.AccelerateInterpolator())
-                    .withEndAction {
-                        downloadNotificationCard.visibility = View.GONE
-                    }
-                    .start()
-            }
-            mainHandler.postDelayed(dismissNotificationRunnable!!, 4000)
+        dismissNotificationRunnable = Runnable {
+            downloadNotificationCard.animate()
+                .alpha(0f)
+                .translationY(dpToPx(this@MainActivity, 20).toFloat())
+                .setDuration(200)
+                .setInterpolator(android.view.animation.AccelerateInterpolator())
+                .withEndAction {
+                    downloadNotificationCard.visibility = View.GONE
+                }
+                .start()
         }
+        mainHandler.postDelayed(dismissNotificationRunnable!!, 3000)
     }
 
     private fun getThemeColor(attrId: Int): Int {
@@ -2110,14 +2245,12 @@ class MainActivity : AppCompatActivity() {
                     bookmarkList.removeAll { it.url == url }
                     saveBookmarks()
                     updateSettingsButtonsUI()
-                    Toast.makeText(this, "Lesezeichen entfernt", Toast.LENGTH_SHORT).show()
                 } else {
                     val title = activeTab.title
                     val thumbnail = activeTab.thumbnail
                     bookmarkList.add(BookmarkItem(title, url, thumbnail))
                     saveBookmarks()
                     updateSettingsButtonsUI()
-                    Toast.makeText(this, "Lesezeichen gespeichert", Toast.LENGTH_SHORT).show()
                 }
             }
         } else {
@@ -2189,9 +2322,9 @@ class MainActivity : AppCompatActivity() {
         customViewCallback?.onCustomViewHidden()
         customViewCallback = null
 
-        // Restore system UI visibility
-        window.decorView.systemUiVisibility = originalSystemUiVisibility
+        // Restore system UI visibility using modern insets API
         val windowInsetsController = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.show(androidx.core.view.WindowInsetsCompat.Type.systemBars())
         windowInsetsController.isAppearanceLightStatusBars = !isColorDark(currentStatusColor)
 
         // Restore other main layout elements

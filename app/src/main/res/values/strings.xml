@@ -4,6 +4,7 @@
     <string name="search_prefix_duckduckgo">https://duckduckgo.com/?q=</string>
     <string name="search_prefix_bing">https://www.bing.com/search?q=</string>
     <string name="search_prefix_ecosia">https://www.ecosia.org/search?q=</string>
+    <string name="search_prefix_qwant">https://www.qwant.com/?q=</string>
     <string name="action_settings">Settings</string>
     <string name="action_tabs">Tabs</string>
     <string name="new_tab">New Tab</string>

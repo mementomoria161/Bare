@@ -3019,6 +3019,7 @@ drawable ic_clock_black_24dp
 drawable ic_close
 drawable ic_close_thin
 drawable ic_desktop
+drawable ic_download
 drawable ic_heart
 drawable ic_heart_filled
 drawable ic_info
@@ -3028,6 +3029,7 @@ drawable ic_logo_bing
 drawable ic_logo_duckduckgo
 drawable ic_logo_ecosia
 drawable ic_logo_google
+drawable ic_logo_qwant
 drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
 drawable ic_m3_chip_close
@@ -3036,7 +3038,9 @@ drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_refresh
+drawable ic_search
 drawable ic_search_black_24
+drawable ic_search_gear
 drawable ic_settings
 drawable ic_star
 drawable ic_star_filled
@@ -3212,7 +3216,6 @@ id beginOnFirstDraw
 id beginning
 id bestChoice
 id blocking
-id bookmarkRow
 id bottom
 id bottomBar
 id bottomBarCard
@@ -3230,17 +3233,18 @@ id btnCloseTab
 id btnGap
 id btnNewTabMain
 id btnRefresh
-id btnSettingAddBookmark
 id btnSettingAutoClose
-id btnSettingBookmarkManager
 id btnSettingClearData
 id btnSettingCustomSearch
 id btnSettingDesktopSite
+id btnSettingFavorites
+id btnSettingManageFavorites
 id btnSettingSearchEngineBing
 id btnSettingSearchEngineCustom
 id btnSettingSearchEngineDuckDuckGo
 id btnSettingSearchEngineEcosia
 id btnSettingSearchEngineGoogle
+id btnSettingSearchEngineQwant
 id btnSettings
 id btnTabOverview
 id buttonPanel
@@ -3339,6 +3343,7 @@ id exitUntilCollapsed
 id expand_activities_button
 id expanded_menu
 id fade
+id favoritesSplitSection
 id fill
 id fill_horizontal
 id fill_vertical
@@ -3386,6 +3391,16 @@ id inward
 id italic
 id item_touch_helper_previous_elevation
 id ivCustomEngine
+id ivSettingActiveSearchLogo
+id ivSettingAutoCloseLogo
+id ivSettingAutoCloseLogoCard
+id ivSettingClearDataLogo
+id ivSettingClearDataLogoCard
+id ivSettingDesktopLogo
+id ivSettingDesktopLogoCard
+id ivSettingFavoritesHeart
+id ivSettingFavoritesHeartCard
+id ivSettingManageFavoritesLogo
 id ivTabThumbnail
 id jumpToEnd
 id jumpToStart
@@ -3402,6 +3417,7 @@ id list_item
 id llButtons
 id llSearchEngines
 id m3_side_sheet
+id manageFavoritesIconCard
 id marquee
 id masked
 id match_constraint
@@ -3540,6 +3556,8 @@ id scrollIndicatorDown
 id scrollIndicatorUp
 id scrollView
 id scrollable
+id searchEngineLogoCard
+id searchEngineSectionPill
 id search_badge
 id search_bar
 id search_button
@@ -3646,6 +3664,9 @@ id transition_transform
 id triangle
 id tvAutoCloseTime
 id tvDownloadStatus
+id tvSettingAutoCloseStatus
+id tvSettingDesktopStatus
+id tvSettingSelectedSearchEngine
 id tvTabCount
 id tvTabTitle
 id tvTabUrl
@@ -4056,6 +4077,7 @@ string search_prefix_bing
 string search_prefix_duckduckgo
 string search_prefix_ecosia
 string search_prefix_google
+string search_prefix_qwant
 string searchbar_scrolling_view_behavior
 string searchview_clear_text_content_description
 string searchview_navigation_content_description

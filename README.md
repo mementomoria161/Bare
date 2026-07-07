@@ -44,6 +44,9 @@
 
 ## Build and Run
 
+> [!IMPORTANT]
+> **AI/Agent Guideline**: Do not run Gradle build or compilation commands directly. The user initiates all builds manually within the Android Studio application.
+
 To compile and verify the codebase without packaging a full APK, run:
 
 ```powershell
