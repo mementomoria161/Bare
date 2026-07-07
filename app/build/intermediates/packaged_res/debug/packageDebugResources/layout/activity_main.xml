@@ -678,7 +678,7 @@
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:paddingTop="8dp"
-                android:paddingBottom="24dp"
+                android:paddingBottom="12dp"
                 android:clipChildren="false"
                 android:clipToPadding="false">
 

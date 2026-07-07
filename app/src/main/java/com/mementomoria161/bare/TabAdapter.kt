@@ -91,7 +91,7 @@ class TabAdapter(
             if (isBookmarkMode) {
                 holder.ivThumbnail.setImageResource(R.drawable.ic_heart)
             } else {
-                holder.ivThumbnail.setImageResource(R.drawable.ic_launcher)
+                holder.ivThumbnail.setImageResource(R.drawable.ic_app_logo)
             }
             holder.ivThumbnail.imageTintList = android.content.res.ColorStateList.valueOf(colorOnSurfaceVariant)
         }

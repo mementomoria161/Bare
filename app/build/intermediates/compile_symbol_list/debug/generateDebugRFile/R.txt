@@ -2,6 +2,7 @@ int color accent 0x0
 int color address_bar_bg 0x0
 int color border 0x0
 int color divider 0x0
+int color ic_launcher_background 0x0
 int color primary 0x0
 int color primary_dark 0x0
 int color primary_light 0x0
@@ -17,6 +18,7 @@ int drawable bg_tab_pill 0x0
 int drawable bg_tabs_fade_gradient 0x0
 int drawable ic_add 0x0
 int drawable ic_add_thin 0x0
+int drawable ic_app_logo 0x0
 int drawable ic_arrow_back_thin 0x0
 int drawable ic_bookmark 0x0
 int drawable ic_bookmark_filled 0x0
@@ -31,6 +33,7 @@ int drawable ic_heart 0x0
 int drawable ic_heart_filled 0x0
 int drawable ic_info 0x0
 int drawable ic_launcher 0x0
+int drawable ic_launcher_foreground 0x0
 int drawable ic_logo_bing 0x0
 int drawable ic_logo_duckduckgo 0x0
 int drawable ic_logo_ecosia 0x0

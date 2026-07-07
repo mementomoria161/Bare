@@ -42,7 +42,7 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:contentDescription="Webpage thumbnail"
-                android:src="@drawable/ic_launcher"
+                android:src="@drawable/ic_app_logo"
                 app:tint="?attr/colorOnSurfaceVariant" />
         </com.google.android.material.card.MaterialCardView>
 

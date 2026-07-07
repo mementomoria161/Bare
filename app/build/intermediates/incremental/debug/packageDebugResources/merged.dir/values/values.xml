@@ -4,6 +4,7 @@
     <color name="address_bar_bg">#2C2C2C</color>
     <color name="border">#333333</color>
     <color name="divider">#2C2C2C</color>
+    <color name="ic_launcher_background">#1A1A1A</color>
     <color name="primary">#D0BCFF</color>
     <color name="primary_dark">#B5A3DF</color>
     <color name="primary_light">#2A233D</color>

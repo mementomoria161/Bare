@@ -15,4 +15,7 @@
     <color name="divider">#2C2C2C</color>
     <color name="address_bar_bg">#2C2C2C</color>
     <color name="ripple">#20FFFFFF</color>
+
+    <!-- Launcher Icon Background -->
+    <color name="ic_launcher_background">#1A1A1A</color>
 </resources>

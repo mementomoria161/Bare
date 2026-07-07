@@ -1420,6 +1420,7 @@ int color foreground_material_dark 0x7f05005f
 int color foreground_material_light 0x7f050060
 int color highlighted_text_material_dark 0x7f050061
 int color highlighted_text_material_light 0x7f050062
+int color ic_launcher_background 0x7f05030e
 int color m3_appbar_overlay_color 0x7f050063
 int color m3_assist_chip_icon_tint_color 0x7f050064
 int color m3_assist_chip_stroke_color 0x7f050065
@@ -3000,6 +3001,7 @@ int drawable design_password_eye 0x7f070089
 int drawable design_snackbar_background 0x7f07008a
 int drawable ic_add 0x7f07008b
 int drawable ic_add_thin 0x7f07008c
+int drawable ic_app_logo 0x7f070105
 int drawable ic_arrow_back_black_24 0x7f07008d
 int drawable ic_arrow_back_thin 0x7f07008e
 int drawable ic_bookmark 0x7f07008f
@@ -3024,6 +3026,7 @@ int drawable ic_heart_filled 0x7f0700a1
 int drawable ic_info 0x7f0700a2
 int drawable ic_keyboard_black_24dp 0x7f0700a3
 int drawable ic_launcher 0x7f0700a4
+int drawable ic_launcher_foreground 0x7f070106
 int drawable ic_logo_bing 0x7f0700a5
 int drawable ic_logo_duckduckgo 0x7f0700a6
 int drawable ic_logo_ecosia 0x7f0700a7
