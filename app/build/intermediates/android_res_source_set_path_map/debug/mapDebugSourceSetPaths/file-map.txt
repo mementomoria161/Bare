@@ -1,8 +1,0 @@
-com.mementomoria161.bare.app-pngs-0 C:\Users\nikim\Documents\GitHub\Bare\app\build\generated\res\pngs\debug
-com.mementomoria161.bare.app-updated_navigation_xml-1 C:\Users\nikim\Documents\GitHub\Bare\app\build\generated\updated_navigation_xml\debug
-com.mementomoria161.bare.app-packageDebugResources-2 C:\Users\nikim\Documents\GitHub\Bare\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.mementomoria161.bare.app-packageDebugResources-3 C:\Users\nikim\Documents\GitHub\Bare\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.mementomoria161.bare.app-debug-4 C:\Users\nikim\Documents\GitHub\Bare\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.mementomoria161.bare.app-debug-5 C:\Users\nikim\Documents\GitHub\Bare\app\src\debug\res
-com.mementomoria161.bare.app-main-6 C:\Users\nikim\Documents\GitHub\Bare\app\src\main\res
-gradleHome-0 C:\Users\nikim\.gradle
