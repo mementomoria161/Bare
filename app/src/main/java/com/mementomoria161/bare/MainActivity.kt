@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.content.ActivityNotFoundException
+import android.content.pm.PackageManager
 import android.app.DownloadManager
 import android.widget.ImageView
 import android.graphics.Bitmap
@@ -116,7 +118,6 @@ class MainActivity : AppCompatActivity() {
     private var isTabsOpen = false
     private var isAnimatingTabs = false
 
-    private var consecutiveTabsClosed = 0
     private var isShowingBookmarks = false
 
     data class BookmarkItem(
@@ -721,10 +722,8 @@ class MainActivity : AppCompatActivity() {
 
         if (isTabsOpen) {
 
-
-            val showClearAll = !isShowingBookmarks && consecutiveTabsClosed >= 2 && tabList.isNotEmpty()
-            btnClearAllInline.visibility = if (showClearAll) View.VISIBLE else View.GONE
-            clearAllContainer.visibility = if (showClearAll) View.VISIBLE else View.GONE
+            btnClearAllInline.visibility = View.GONE
+            clearAllContainer.visibility = View.GONE
 
             // Capture thumbnail of current active tab before showing the overview,
             // so it always has a fresh screenshot even if we never switched away from it.
@@ -732,11 +731,12 @@ class MainActivity : AppCompatActivity() {
                 captureTabThumbnail(tabList[activeTabIndex])
             }
 
+            rvTabsInline.adapter = null
             rvTabsInline.alpha = 0f // Hide recycler view so children don't flash before animation setup
             setupInlineTabAdapter(rvTabsInline, btnClearAllInline)
 
             if (tabList.isNotEmpty()) {
-                rvTabsInline.scrollToPosition(tabList.lastIndex)
+                rvTabsInline.scrollToPosition(0) // position 0 is at the bottom with reverseLayout=true
             }
 
             // Dim status bar and overlay
@@ -810,7 +810,7 @@ class MainActivity : AppCompatActivity() {
                         .scaleY(targetScale)
                         .translationY(0f)
                         .setDuration(280)
-                        .setStartDelay(120L + (childCount - 1 - i) * 60L)
+                        .setStartDelay(120L + i * 60L) // i=0 is bottom with reverseLayout → bottom animates first = bottom-to-top
                         .setInterpolator(android.view.animation.OvershootInterpolator(2.2f))
                         .start()
                 }
@@ -848,7 +848,7 @@ class MainActivity : AppCompatActivity() {
                     .scaleY(0.3f)
                     .translationY(targetTranslationY)
                     .setDuration(200)
-                    .setStartDelay(i * 40L)
+                    .setStartDelay((childCount - 1 - i) * 40L) // i=childCount-1 is top with reverseLayout → top collapses first
                     .setInterpolator(android.view.animation.AccelerateInterpolator())
                     .start()
             }
@@ -914,10 +914,23 @@ class MainActivity : AppCompatActivity() {
         isCustomSearchDeleteState = false
     }
 
+    private fun performClearAllTabs() {
+        MaterialAlertDialogBuilder(this@MainActivity)
+            .setTitle("Close all tabs?")
+            .setMessage("This will close all your open tabs.")
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .setPositiveButton("Close All") { _, _ ->
+                while (tabList.isNotEmpty()) {
+                    val tab = tabList.removeAt(0)
+                    webViewContainer.removeView(tab.webView)
+                    tab.webView.destroy()
+                }
+                toggleTabsOverview()
+            }
+            .show()
+    }
+
     private fun setupInlineTabAdapter(rvTabs: androidx.recyclerview.widget.RecyclerView, btnClearAll: Button) {
-        rvTabs.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this).apply {
-            stackFromEnd = true
-        }
         val typedValue = TypedValue()
         theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
         val colorPrimary = typedValue.data
@@ -937,9 +950,29 @@ class MainActivity : AppCompatActivity() {
         theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
         val colorOnSurfaceVariant = typedValue.data
 
-        val items = if (isShowingBookmarks) {
-            bookmarkList.map { bookmark ->
+        theme.resolveAttribute(com.google.android.material.R.attr.colorError, typedValue, true)
+        val colorError = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorErrorContainer, typedValue, true)
+        val colorErrorContainer = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorOnError, typedValue, true)
+        val colorOnError = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorOnErrorContainer, typedValue, true)
+        val colorOnErrorContainer = typedValue.data
+
+        // Whether the ClearAll sentinel should appear at the top of the list
+        val showClearAll = !isShowingBookmarks && tabList.size >= 5
+
+        // Data is reversed so that with reverseLayout=true the visual order remains
+        // oldest-at-top / newest-at-bottom, and RecyclerView naturally animates
+        // items *above* a removal downward (instead of items below moving up).
+        val items: List<TabOverviewItem> = if (isShowingBookmarks) {
+            bookmarkList.reversed().mapIndexed { revIdx, bookmark ->
+                val originalIndex = bookmarkList.lastIndex - revIdx
                 TabOverviewItem(
+                    stableId = bookmark.url.hashCode().toLong() xor (originalIndex.toLong() shl 32),
                     title = bookmark.title,
                     url = bookmark.url,
                     thumbnail = bookmark.thumbnail,
@@ -948,60 +981,96 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         } else {
-            tabList.map { tab ->
+            val list = tabList.reversed().map { tab ->
                 TabOverviewItem(
+                    stableId = System.identityHashCode(tab.webView).toLong(),
                     title = tab.title,
                     url = tab.url,
                     thumbnail = tab.thumbnail,
                     lastActiveTime = tab.lastActiveTime,
                     isBookmark = false
                 )
+            }.toMutableList()
+
+            // ClearAll appended at the END so it appears at the TOP
+            // (last adapter position = top of screen with reverseLayout=true)
+            if (showClearAll) {
+                list.add(TabOverviewItem(
+                    stableId = Long.MAX_VALUE,
+                    title = "",
+                    url = "",
+                    thumbnail = null,
+                    lastActiveTime = null,
+                    isBookmark = false,
+                    isClearAll = true
+                ))
             }
+            list
         }
 
-        val adapter = TabAdapter(
-            items = items,
-            activeTabIndex = if (isShowingBookmarks) -1 else activeTabIndex,
-            colorPrimary = colorPrimary,
-            colorPrimaryContainer = colorPrimaryContainer,
-            colorOutline = colorOutline,
-            colorSurface = colorSurface,
-            colorSurfaceVariant = colorSurfaceVariant,
-            colorOnSurfaceVariant = colorOnSurfaceVariant,
-            autoCloseSetting = sharedPreferences.getString("auto_close_tabs", "never") ?: "never",
-            isBookmarkMode = isShowingBookmarks,
-            onItemSelected = { selectedIndex ->
-                if (isShowingBookmarks) {
-                    val bookmark = bookmarkList[selectedIndex]
-                    addNewTab(bookmark.url)
-                    toggleTabsOverview()
-                } else {
-                    selectTab(selectedIndex)
-                    toggleTabsOverview()
-                }
-            },
-            onItemClosed = { closedIndex ->
-                if (isShowingBookmarks) {
-                    bookmarkList.removeAt(closedIndex)
-                    saveBookmarks()
-                    setupInlineTabAdapter(rvTabs, btnClearAll)
-                } else {
-                    closeTab(closedIndex, autoCreate = false)
-                    consecutiveTabsClosed++
-                    setupInlineTabAdapter(rvTabs, btnClearAll)
-                    
-                    val showClearAll = !isShowingBookmarks && consecutiveTabsClosed >= 2 && tabList.isNotEmpty()
-                    btnClearAll.visibility = if (showClearAll) View.VISIBLE else View.GONE
-                    clearAllContainer.visibility = if (showClearAll) View.VISIBLE else View.GONE
-                    if (tabList.isEmpty()) {
+        // Active tab highlight: convert tabList index → reversed adapter position.
+        // ClearAll is at the END so it doesn't offset tab positions.
+        val targetActiveIndex = if (isShowingBookmarks) -1
+                                else tabList.lastIndex - activeTabIndex
+
+        val existingAdapter = rvTabs.adapter as? TabAdapter
+        if (existingAdapter != null) {
+            existingAdapter.updateData(items, targetActiveIndex)
+        } else {
+            // reverseLayout=true: adapter position 0 is at the BOTTOM of the screen.
+            // Combined with reversed data this preserves visual order while flipping
+            // which side RecyclerView anchors during removal animations.
+            rvTabs.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
+                this, androidx.recyclerview.widget.LinearLayoutManager.VERTICAL, true
+            )
+            val adapter = TabAdapter(
+                items = items,
+                activeTabIndex = targetActiveIndex,
+                colorPrimary = colorPrimary,
+                colorPrimaryContainer = colorPrimaryContainer,
+                colorOutline = colorOutline,
+                colorSurface = colorSurface,
+                colorSurfaceVariant = colorSurfaceVariant,
+                colorOnSurfaceVariant = colorOnSurfaceVariant,
+                colorError = colorError,
+                colorErrorContainer = colorErrorContainer,
+                colorOnError = colorOnError,
+                colorOnErrorContainer = colorOnErrorContainer,
+                autoCloseSetting = sharedPreferences.getString("auto_close_tabs", "never") ?: "never",
+                isBookmarkMode = isShowingBookmarks,
+                onItemSelected = { adapterIndex ->
+                    if (isShowingBookmarks) {
+                        val actualIndex = bookmarkList.lastIndex - adapterIndex
+                        addNewTab(bookmarkList[actualIndex].url)
+                        toggleTabsOverview()
+                    } else {
+                        // ClearAll is at end — no offset needed for tab index mapping
+                        val actualIndex = tabList.lastIndex - adapterIndex
+                        selectTab(actualIndex)
                         toggleTabsOverview()
                     }
+                },
+                onItemClosed = { adapterIndex ->
+                    if (isShowingBookmarks) {
+                        val actualIndex = bookmarkList.lastIndex - adapterIndex
+                        bookmarkList.removeAt(actualIndex)
+                        saveBookmarks()
+                        setupInlineTabAdapter(rvTabs, btnClearAll)
+                    } else {
+                        val actualIndex = tabList.lastIndex - adapterIndex
+                        closeTab(actualIndex, autoCreate = false)
+                        setupInlineTabAdapter(rvTabs, btnClearAll)
+                        if (tabList.isEmpty()) {
+                            toggleTabsOverview()
+                        }
+                    }
+                },
+                onClearAll = {
+                    performClearAllTabs()
                 }
-            }
-        )
-        val savedScrollState = rvTabs.layoutManager?.onSaveInstanceState()
-        rvTabs.adapter = adapter
-        rvTabs.layoutManager?.onRestoreInstanceState(savedScrollState)
+            )
+            rvTabs.adapter = adapter
+        }
     }
 
     private fun updateSettingsButtonsUI() {
@@ -1376,7 +1445,6 @@ class MainActivity : AppCompatActivity() {
 
     // Tab Management
     private fun addNewTab(url: String = "about:blank") {
-        consecutiveTabsClosed = 0
         closeActiveTabIfBlank()
         closeAllOverlays()
         val webView = createNewWebView()
@@ -1402,7 +1470,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(index: Int) {
-        consecutiveTabsClosed = 0
         if (index !in tabList.indices) return
         val targetTab = tabList[index]
         
@@ -1671,16 +1738,12 @@ class MainActivity : AppCompatActivity() {
             override fun shouldOverrideUrlLoading(view: WebView, request: android.webkit.WebResourceRequest): Boolean {
                 val url = request.url.toString()
                 if (url.startsWith("http://") || url.startsWith("https://")) {
+                    if (handleHttpLinkWithExternalApp(url)) {
+                        return true
+                    }
                     return false
                 }
-                // Handle external apps mapping
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(this@MainActivity, getString(R.string.toast_error_app_link), Toast.LENGTH_SHORT).show()
-                }
-                return true
+                return handleExternalScheme(view, url)
             }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -1813,6 +1876,96 @@ class MainActivity : AppCompatActivity() {
         }
 
         return webView
+    }
+
+    private fun handleHttpLinkWithExternalApp(url: String): Boolean {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER
+                }
+                startActivity(intent)
+                return true
+            } catch (e: ActivityNotFoundException) {
+                return false
+            }
+        } else {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                }
+                val pm = packageManager
+                val resolveInfoList = pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                for (info in resolveInfoList) {
+                    val packageName = info.activityInfo.packageName
+                    if (packageName != "com.android.chrome" &&
+                        packageName != "org.mozilla.firefox" &&
+                        packageName != "com.opera.browser" &&
+                        packageName != "com.microsoft.emmx" &&
+                        packageName != "com.sec.android.app.sbrowser" &&
+                        packageName != "com.mementomoria161.bare" &&
+                        packageName != this.packageName
+                    ) {
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                        return true
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return false
+        }
+    }
+
+    private fun handleExternalScheme(view: WebView, url: String): Boolean {
+        if (url.startsWith("intent:")) {
+            try {
+                val intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                if (intent != null) {
+                    try {
+                        startActivity(intent)
+                        return true
+                    } catch (e: ActivityNotFoundException) {
+                        val fallbackUrl = intent.getStringExtra("browser_fallback_url")
+                        if (fallbackUrl != null) {
+                            view.loadUrl(fallbackUrl)
+                            return true
+                        }
+                        val packageName = intent.`package`
+                        if (packageName != null) {
+                            try {
+                                val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                                startActivity(marketIntent)
+                                return true
+                            } catch (me: ActivityNotFoundException) {
+                                try {
+                                    val playStoreIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName"))
+                                    startActivity(playStoreIntent)
+                                    return true
+                                } catch (pe: Exception) {
+                                    // ignore
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            Toast.makeText(this, getString(R.string.toast_error_app_link), Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
+            return true
+        } catch (e: Exception) {
+            Toast.makeText(this, getString(R.string.toast_error_app_link), Toast.LENGTH_SHORT).show()
+            return true
+        }
     }
 
     private var pendingDownloadUrl: String? = null

@@ -83,7 +83,7 @@
                     app:cardCornerRadius="48dp"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainer"
+                    app:cardBackgroundColor="?attr/colorError"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent">
@@ -95,7 +95,7 @@
                         android:scaleType="center"
                         android:contentDescription="Clear data icon"
                         android:src="@drawable/ic_clear_all_thin"
-                        app:tint="?attr/colorOnSurfaceVariant" />
+                        app:tint="?attr/colorOnError" />
                 </com.google.android.material.card.MaterialCardView>
 
                 <TextView
@@ -103,7 +103,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:text="Clear Data"
-                    android:textColor="?attr/colorOnSurface"
+                    android:textColor="?attr/colorOnErrorContainer"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintStart_toEndOf="@id/ivSettingClearDataLogoCard"
