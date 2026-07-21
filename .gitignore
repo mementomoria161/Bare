@@ -1,17 +1,29 @@
+# Android / Gradle build output (including library modules)
+.gradle/
+**/build/
+.kotlin/
+
+# Machine-specific Android Studio and SDK files
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/nav/
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/app/build
-/.kotlin
-/captures
-.externalNativeBuild
-.cxx
 local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Local signing material -- keep the same key for every release update.
+**/keystore.properties
+*.jks
+*.keystore
+
+# Packaged build artefacts
+*.apk
+*.aab
+*.ap_
+*.aar
+*.dex
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
